@@ -13,8 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('personal_access_tokens', function (Blueprint $table) {
-            $table->timestamp('expires_at')->nullable()->after('abilities');
+        Schema::create('banks', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('account_number');
+            $table->string('branch');
+            $table->enum('status', ['active', 'inactive', 'deleted'])->default('active'); // حالة المصرف
+            $table->timestamps();
         });
     }
 
@@ -25,8 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('personal_access_tokens', function (Blueprint $table) {
-            $table->dropColumn('expires_at');
-        });
+        Schema::dropIfExists('banks');
     }
 };

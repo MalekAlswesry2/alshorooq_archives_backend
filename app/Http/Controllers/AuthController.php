@@ -16,8 +16,11 @@ class AuthController extends Controller
             'phone' => 'required|string|unique:users,phone',
             'department' => 'required|string|max:255',
             'address' => 'required|string|max:255',
+            'status' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
+            'role' => 'nullable|string|in:master,admin,user', // التحقق من الدور
+
         ]);
 
         if ($validator->fails()) {
@@ -29,8 +32,11 @@ class AuthController extends Controller
             'phone' => $request->phone,
             'department' => $request->department,
             'address' => $request->address,
+            'status' => $request->status,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => $request->role ?? 'user', // تعيين الدور أو القيمة الافتراضية
+
         ]);
 
         return response()->json(['message' => 'User registered successfully!', 'user' => $user], 201);
@@ -57,6 +63,16 @@ public function login(Request $request)
     return response()->json([
         'message' => 'Invalid email or password',
     ], 401);
+}
+
+public function logout(Request $request) {
+    if (!auth()->user()) {
+        return response()->json(['error' => 'already signed out'], 404);
+    }
+
+    $request->user()->currentAccessToken()->delete();
+
+    return response()->json(['message' => 'User successfully signed out']);
 }
 
 }
