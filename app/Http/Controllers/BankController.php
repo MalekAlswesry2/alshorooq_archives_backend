@@ -37,8 +37,9 @@ class BankController extends Controller
             'name' => 'required|string|max:255',
             'account_number' => 'required|string|max:255|unique:banks,account_number',
             'branch' => 'required|string|max:255',
-            'status' => 'required|string|in:active,inactive,deleted',
+            // 'status' => 'required|string|in:active,inactive,deleted',
         ]);
+        $validated['status'] = 'active';
 
         $bank = Bank::create($validated);
 

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MarketController;
 use App\Http\Controllers\BankController;
+use App\Http\Controllers\ReceiptController;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,6 +47,14 @@ Route::prefix('mobile')->group(function () {
     Route::post('/banks', [BankController::class, 'store']); // إضافة مصرف جديد
     Route::put('/banks/{id}', [BankController::class, 'update']); // تحديث مصرف
     Route::delete('/banks/{id}', [BankController::class, 'destroy']); // حذف مصرف
+
+    // Route::post('/receipts', [ReceiptController::class, 'store']);
+    Route::prefix('receipts')->group(function () {
+        Route::get('/', [ReceiptController::class, 'index']); // عرض جميع الإيصالات
+        Route::post('/', [ReceiptController::class, 'store']); // إضافة إيصال جديد
+        Route::put('/{id}/status', [ReceiptController::class, 'updateStatus']); // تحديث حالة الإيصال
+    });
+    
     });
     // Get Section
 

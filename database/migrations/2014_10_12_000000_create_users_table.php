@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('phone')->unique(); // رقم الهاتف
             $table->string('department'); // القسم
             $table->string('address'); // خد السير
-            $table->string('status'); // خد السير
+            $table->string('status')->default('active');
             $table->string('role'); // خد السير
             $table->string('email')->unique(); // الإيميل
             $table->timestamp('email_verified_at')->nullable();

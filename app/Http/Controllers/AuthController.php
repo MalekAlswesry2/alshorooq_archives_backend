@@ -16,7 +16,7 @@ class AuthController extends Controller
             'phone' => 'required|string|unique:users,phone',
             'department' => 'required|string|max:255',
             'address' => 'required|string|max:255',
-            'status' => 'required|string|max:255',
+            // 'status' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
             'role' => 'nullable|string|in:master,admin,user', // التحقق من الدور
@@ -32,14 +32,17 @@ class AuthController extends Controller
             'phone' => $request->phone,
             'department' => $request->department,
             'address' => $request->address,
-            'status' => $request->status,
+            'status' => 'active', // الحالة الافتراضية
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role ?? 'user', // تعيين الدور أو القيمة الافتراضية
 
         ]);
 
-        return response()->json(['message' => 'User registered successfully!', 'user' => $user], 201);
+                // إنشاء التوكن للمستخدم
+                $token = $user->createToken('auth_token')->plainTextToken;
+                
+        return response()->json(['message' => 'User registered successfully!', 'user' => $user ,'token' => $token,], 201);
     }
 
 public function login(Request $request)

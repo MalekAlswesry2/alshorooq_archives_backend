@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('phone')->nullable(); // رقم الهاتف
             $table->unsignedBigInteger('user_id'); // معرف المندوب
             $table->string('address'); // المنطقة
-            $table->string('status'); // الحالة
+            $table->string('status')->default('active');
             $table->string('system_market_number')->unique(); // رقم السوق في المنظومة
             $table->string('role')->default('user');
             $table->timestamps();

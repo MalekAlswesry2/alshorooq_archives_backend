@@ -39,14 +39,14 @@ class MarketController extends Controller
                 'error' => false,
                 'message' => 'Market created successfully',
                 'market' => $market,
-            ], 201);
+            ], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
             // الرد إذا فشل التحقق من البيانات
             return response()->json([
                 'error' => true,
                 'message' => 'Validation failed',
                 'errors' => $e->errors(),
-            ], 200);
+            ], 400);
         } catch (\Exception $e) {
             // الرد إذا حدث خطأ آخر
             return response()->json([
@@ -60,22 +60,58 @@ class MarketController extends Controller
         
 
     // عرض الأسواقW
-    public function index()
-    {
+    // public function index()
+    // {
 
+    //     if (!auth()->check()) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'You Are Not Authenticated',
+    //         ], 401);
+    //     }
+        
+        
+    //     $markets = Market::where('status', '!=', 'deleted')->with('user')->get();
+
+    //     return response()->json($markets, 200);
+    // }
+    public function index(Request $request)
+    {
         if (!auth()->check()) {
             return response()->json([
                 'error' => true,
                 'message' => 'You Are Not Authenticated',
             ], 401);
         }
-        
-        
-        $markets = Market::where('status', '!=', 'deleted')->with('user')->get();
-
-        return response()->json($markets, 200);
+    
+        // الحصول على استعلام البحث إذا وُجد
+        $query = $request->query('search');
+    
+        // استعلام الأسواق
+        $markets = Market::query();
+    
+        // تطبيق الفلاتر إذا وُجد استعلام بحث
+        if ($query) {
+            $markets = $markets->where('name', 'LIKE', "%$query%")
+                ->orWhere('phone', 'LIKE', "%$query%")
+                ->orWhere('system_market_number', 'LIKE', "%$query%");
+        }
+    
+        // تنفيذ الاستعلام وجلب النتائج
+        $markets = $markets->get();
+    
+        if ($markets->isEmpty()) {
+            return response()->json([
+                'message' => $query ? 'No markets found for the given query' : 'No markets available',
+            ], 404);
+        }
+    
+        return response()->json([
+            'message' => $query ? 'Markets retrieved successfully for the given query' : 'Markets retrieved successfully',
+            'markets' => $markets,
+        ], 200);
     }
-
+    
     public function update(Request $request, $id)
     {
         if (!auth()->check()) {
