@@ -38,7 +38,7 @@ Route::prefix('mobile')->group(function () {
     // End Auth Section
     // Protected Routes
     Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/markets', [MarketController::class, 'index']); // عرض كل الأسواق
+    // Route::get('/markets', [MarketController::class, 'index']); // عرض كل الأسواق
     Route::post('/markets', [MarketController::class, 'store']); // إضافة سوق جديد
     Route::put('/markets/{id}', [MarketController::class, 'update']); // تحديث سوق
     Route::delete('/markets/{id}', [MarketController::class, 'destroy']); // حذف سوق
@@ -53,6 +53,19 @@ Route::prefix('mobile')->group(function () {
         Route::get('/', [ReceiptController::class, 'index']); // عرض جميع الإيصالات
         Route::post('/', [ReceiptController::class, 'store']); // إضافة إيصال جديد
         Route::put('/{id}/status', [ReceiptController::class, 'updateStatus']); // تحديث حالة الإيصال
+    });
+    Route::get('/markets', [MarketController::class, 'index'])->middleware('permission:can_view');
+    // Route::post('/markets', [MarketController::class, 'store'])->middleware('permission:can_edit');
+    Route::get('/user/permissions', function () {
+        return response()->json([
+            'permissions' => auth()->user()->permissions->pluck('name'),
+        ]);
+    });
+    
+    Route::post('/user/{user}/permissions', function (\App\Models\User $user, Request $request) {
+        $permissions = \App\Models\Permission::whereIn('name', $request->permissions)->pluck('id');
+        $user->permissions()->sync($permissions); // sync لتحديث الصلاحيات
+        return response()->json(['message' => 'Permissions updated successfully']);
     });
     
     });

@@ -16,10 +16,15 @@ class Receipt extends Model
         'check_number',
         'bank_id',
         'image',
-        'status', // حالة الإيصال
+        'status', 
+        'user_id', 
     ];
     
 
+    public function user()
+    {
+    return $this->belongsTo(User::class);
+    }
     public function market()
     {
         return $this->belongsTo(Market::class);
