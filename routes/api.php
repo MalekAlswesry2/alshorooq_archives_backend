@@ -53,6 +53,7 @@ Route::prefix('mobile')->group(function () {
 
     // Route::post('/receipts', [ReceiptController::class, 'store']);
     Route::prefix('receipts')->group(function () {
+        Route::get('/current_user-receipts', [ReceiptController::class, 'userReceipts']);
         Route::get('/', [ReceiptController::class, 'index']); // عرض جميع الإيصالات
         Route::post('/', [ReceiptController::class, 'store']); // إضافة إيصال جديد
         Route::put('/{id}/status', [ReceiptController::class, 'updateStatus']); // تحديث حالة الإيصال

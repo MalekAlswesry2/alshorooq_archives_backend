@@ -25,6 +25,35 @@ class ReceiptController extends Controller
         ]);
     }
     
+    public function userReceipts(Request $request)
+{
+    if (!auth()->check()) {
+        return response()->json([
+            'error' => true,
+            'message' => 'You Are Not Authenticated',
+        ], 401);
+    }
+
+    // الحصول على المستخدم الحالي
+    $userId = auth()->id();
+
+    // استعلام الإيصالات مع البيانات المرتبطة
+    $receipts = Receipt::where('user_id', $userId)
+        ->with(['user', 'bank', 'market'])
+        ->get();
+
+    if ($receipts->isEmpty()) {
+        return response()->json([
+            'message' => 'No receipts associated with the current user',
+        ], 404);
+    }
+
+    return response()->json([
+        'message' => 'User receipts retrieved successfully',
+        'receipts' => $receipts,
+    ], 200);
+}
+
 
 public function store(Request $request)
 {
