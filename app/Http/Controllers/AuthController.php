@@ -68,6 +68,22 @@ public function login(Request $request)
     ], 401);
 }
 
+public function profile()
+{
+    if (!auth()->check()) {
+        return response()->json([
+            'error' => true,
+            'message' => 'You Are Not Authenticated',
+        ], 401);
+    }
+
+    $user = auth()->user(); // الحصول على المستخدم المصادق عليه
+
+    return response()->json([
+        'message' => 'User profile retrieved successfully',
+        'user' => $user,
+    ], 200);
+}
 public function logout(Request $request) {
     if (!auth()->user()) {
         return response()->json(['error' => 'already signed out'], 404);

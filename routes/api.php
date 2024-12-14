@@ -38,6 +38,9 @@ Route::prefix('mobile')->group(function () {
     // End Auth Section
     // Protected Routes
     Route::middleware('auth:sanctum')->group(function () {
+
+    Route::get('/profile', [AuthController::class, 'profile']);
+
     // Route::get('/markets', [MarketController::class, 'index']); // عرض كل الأسواق
     Route::post('/markets', [MarketController::class, 'store']); // إضافة سوق جديد
     Route::put('/markets/{id}', [MarketController::class, 'update']); // تحديث سوق
