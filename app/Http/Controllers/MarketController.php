@@ -112,6 +112,35 @@ class MarketController extends Controller
         ], 200);
     }
     
+    public function userMarkets(Request $request)
+    {
+        if (!auth()->check()) {
+            return response()->json([
+                'error' => true,
+                'message' => 'You Are Not Authenticated',
+            ], 401);
+        }
+    
+        // الحصول على المستخدم الحالي
+        $userId = auth()->id();
+    
+        // جلب الأسواق المرتبطة بالمستخدم الحالي فقط
+        $markets = Market::where('user_id', $userId)->get();
+    
+        if ($markets->isEmpty()) {
+            return response()->json([
+                'message' => 'No markets associated with the current user',
+            ], 404);
+        }
+    
+        return response()->json([
+            'message' => 'User markets retrieved successfully',
+            'markets' => $markets,
+        ], 200);
+    }
+    
+
+    
     public function update(Request $request, $id)
     {
         if (!auth()->check()) {

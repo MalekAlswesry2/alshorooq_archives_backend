@@ -41,7 +41,7 @@ Route::prefix('mobile')->group(function () {
 
     Route::get('/profile', [AuthController::class, 'profile']);
 
-    // Route::get('/markets', [MarketController::class, 'index']); // عرض كل الأسواق
+    Route::get('/current_user_markets', [MarketController::class, 'userMarkets']); // عرض كل الأسواق
     Route::post('/markets', [MarketController::class, 'store']); // إضافة سوق جديد
     Route::put('/markets/{id}', [MarketController::class, 'update']); // تحديث سوق
     Route::delete('/markets/{id}', [MarketController::class, 'destroy']); // حذف سوق
@@ -57,7 +57,7 @@ Route::prefix('mobile')->group(function () {
         Route::post('/', [ReceiptController::class, 'store']); // إضافة إيصال جديد
         Route::put('/{id}/status', [ReceiptController::class, 'updateStatus']); // تحديث حالة الإيصال
     });
-    Route::get('/markets', [MarketController::class, 'index'])->middleware('permission:can_view');
+    // Route::get('/markets', [MarketController::class, 'index'])->middleware('permission:can_view');
     // Route::post('/markets', [MarketController::class, 'store'])->middleware('permission:can_edit');
     Route::get('/user/permissions', function () {
         return response()->json([
