@@ -6,7 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MarketController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\ReceiptController;
-
+use App\Http\Controllers\AreaController;
+use App\Http\Controllers\ZoneController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -41,7 +42,10 @@ Route::prefix('mobile')->group(function () {
 
     Route::get('/profile', [AuthController::class, 'profile']);
 
-    Route::get('/current_user_markets', [MarketController::class, 'userMarkets']); // عرض كل الأسواق
+    Route::get('/markets', [MarketController::class, 'getMarkets']);
+    Route::get('/receipts', [ReceiptController::class, 'getReceipts']);
+
+    // Route::get('/current_user_markets', [MarketController::class, 'userMarkets']); // عرض كل الأسواق
     Route::post('/markets', [MarketController::class, 'store']); // إضافة سوق جديد
     Route::put('/markets/{id}', [MarketController::class, 'update']); // تحديث سوق
     Route::delete('/markets/{id}', [MarketController::class, 'destroy']); // حذف سوق
@@ -53,13 +57,25 @@ Route::prefix('mobile')->group(function () {
 
     // Route::post('/receipts', [ReceiptController::class, 'store']);
     Route::prefix('receipts')->group(function () {
-        Route::get('/current_user-receipts', [ReceiptController::class, 'userReceipts']);
-        Route::get('/', [ReceiptController::class, 'index']); // عرض جميع الإيصالات
+        // Route::get('/current_user-receipts', [ReceiptController::class, 'userReceipts']);
+        // Route::get('/', [ReceiptController::class, 'index']); // عرض جميع الإيصالات
         Route::post('/', [ReceiptController::class, 'store']); // إضافة إيصال جديد
         Route::put('/{id}/status', [ReceiptController::class, 'updateStatus']); // تحديث حالة الإيصال
     });
     // Route::get('/markets', [MarketController::class, 'index'])->middleware('permission:can_view');
     // Route::post('/markets', [MarketController::class, 'store'])->middleware('permission:can_edit');
+
+
+        Route::get('/zones', [ZoneController::class, 'index']);
+        Route::post('/zones', [ZoneController::class, 'store']);
+   
+
+        Route::get('/areas', [AreaController::class, 'allAreas']);
+
+        Route::get('/zones/{zoneId}/areas', [AreaController::class, 'index']);
+        // إنشاء منطقة جديدة
+        Route::post('/areas', [AreaController::class, 'store']);
+    
     Route::get('/user/permissions', function () {
         return response()->json([
             'permissions' => auth()->user()->permissions->pluck('name'),

@@ -57,4 +57,15 @@ class User extends Authenticatable
     {
         return $this->permissions->contains('name', $permission);
     }
+
+    public function markets()
+{
+    return $this->hasMany(Market::class, 'user_id');
+}
+
+public function receipts()
+{
+    return $this->hasMany(Receipt::class, 'user_id');
+}
+
 }

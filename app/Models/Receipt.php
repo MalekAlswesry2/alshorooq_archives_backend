@@ -20,11 +20,12 @@ class Receipt extends Model
         'user_id', 
     ];
     
-
     public function user()
     {
-    return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
+    
+
     public function market()
     {
         return $this->belongsTo(Market::class);

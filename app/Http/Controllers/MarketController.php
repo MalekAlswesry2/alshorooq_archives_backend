@@ -75,7 +75,71 @@ class MarketController extends Controller
 
     //     return response()->json($markets, 200);
     // }
-    public function index(Request $request)
+    // public function index(Request $request)
+    // {
+    //     if (!auth()->check()) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'You Are Not Authenticated',
+    //         ], 401);
+    //     }
+    
+    //     // الحصول على استعلام البحث إذا وُجد
+    //     $query = $request->query('search');
+    
+    //     // استعلام الأسواق
+    //     $markets = Market::query();
+    
+    //     // تطبيق الفلاتر إذا وُجد استعلام بحث
+    //     if ($query) {
+    //         $markets = $markets->where('name', 'LIKE', "%$query%")
+    //             ->orWhere('phone', 'LIKE', "%$query%")
+    //             ->orWhere('system_market_number', 'LIKE', "%$query%");
+    //     }
+    
+    //     // تنفيذ الاستعلام وجلب النتائج
+    //     $markets = $markets->get();
+    
+    //     if ($markets->isEmpty()) {
+    //         return response()->json([
+    //             'message' => $query ? 'No markets found for the given query' : 'No markets available',
+    //         ], 404);
+    //     }
+    
+    //     return response()->json([
+    //         'message' => $query ? 'Markets retrieved successfully for the given query' : 'Markets retrieved successfully',
+    //         'markets' => $markets,
+    //     ], 200);
+    // }
+    
+    // public function userMarkets(Request $request)
+    // {
+    //     if (!auth()->check()) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'You Are Not Authenticated',
+    //         ], 401);
+    //     }
+    
+    //     // الحصول على المستخدم الحالي
+    //     $userId = auth()->id();
+    
+    //     // جلب الأسواق المرتبطة بالمستخدم الحالي فقط
+    //     $markets = Market::where('user_id', $userId)->get();
+    
+    //     if ($markets->isEmpty()) {
+    //         return response()->json([
+    //             'message' => 'No markets associated with the current user',
+    //         ], 404);
+    //     }
+    
+    //     return response()->json([
+    //         'message' => 'User markets retrieved successfully',
+    //         'markets' => $markets,
+    //     ], 200);
+    // }
+    
+    public function getMarkets(Request $request)
     {
         if (!auth()->check()) {
             return response()->json([
@@ -84,62 +148,33 @@ class MarketController extends Controller
             ], 401);
         }
     
-        // الحصول على استعلام البحث إذا وُجد
-        $query = $request->query('search');
+        $user = auth()->user();
     
-        // استعلام الأسواق
-        $markets = Market::query();
-    
-        // تطبيق الفلاتر إذا وُجد استعلام بحث
-        if ($query) {
-            $markets = $markets->where('name', 'LIKE', "%$query%")
-                ->orWhere('phone', 'LIKE', "%$query%")
-                ->orWhere('system_market_number', 'LIKE', "%$query%");
-        }
-    
-        // تنفيذ الاستعلام وجلب النتائج
-        $markets = $markets->get();
-    
-        if ($markets->isEmpty()) {
-            return response()->json([
-                'message' => $query ? 'No markets found for the given query' : 'No markets available',
-            ], 404);
-        }
-    
-        return response()->json([
-            'message' => $query ? 'Markets retrieved successfully for the given query' : 'Markets retrieved successfully',
-            'markets' => $markets,
-        ], 200);
-    }
-    
-    public function userMarkets(Request $request)
-    {
-        if (!auth()->check()) {
+        if ($user->role === 'admin') {
+            // عرض جميع الأسواق إذا كان المستخدم Admin
+            $markets = Market::with('user')->get();
+        } elseif ($user->role === 'user') {
+            // عرض الأسواق المرتبطة بالمستخدم الحالي
+            $markets = $user->markets()->with('user')->get();
+        } else {
             return response()->json([
                 'error' => true,
-                'message' => 'You Are Not Authenticated',
-            ], 401);
+                'message' => 'Invalid user role',
+            ], 403);
         }
-    
-        // الحصول على المستخدم الحالي
-        $userId = auth()->id();
-    
-        // جلب الأسواق المرتبطة بالمستخدم الحالي فقط
-        $markets = Market::where('user_id', $userId)->get();
     
         if ($markets->isEmpty()) {
             return response()->json([
-                'message' => 'No markets associated with the current user',
+                'message' => 'No markets available',
             ], 404);
         }
     
         return response()->json([
-            'message' => 'User markets retrieved successfully',
+            'message' => 'Markets retrieved successfully',
             'markets' => $markets,
         ], 200);
     }
     
-
     
     public function update(Request $request, $id)
     {

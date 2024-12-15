@@ -8,24 +8,52 @@ use Illuminate\Http\Request;
 
 class ReceiptController extends Controller
 {
-    public function index(Request $request)
-    {
-        $receipts = Receipt::query();
+    // public function index(Request $request)
+    // {
+    //     $receipts = Receipt::query();
     
-        // التحقق من وجود فلتر للحالة
-        if ($request->has('status')) {
-            $receipts->where('status', $request->status);
-        }
+    //     // التحقق من وجود فلتر للحالة
+    //     if ($request->has('status')) {
+    //         $receipts->where('status', $request->status);
+    //     }
     
-        // إحضار الإيصالات مع بيانات المستخدم، المصرف، والسوق
-        $receipts = $receipts->with(['user', 'bank', 'market'])->get();
+    //     // إحضار الإيصالات مع بيانات المستخدم، المصرف، والسوق
+    //     $receipts = $receipts->with(['user', 'bank', 'market'])->get();
     
-        return response()->json([
-            'receipts' => $receipts,
-        ]);
-    }
+    //     return response()->json([
+    //         'receipts' => $receipts,
+    //     ]);
+    // }
     
-    public function userReceipts(Request $request)
+//     public function userReceipts(Request $request)
+// {
+//     if (!auth()->check()) {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'You Are Not Authenticated',
+//         ], 401);
+//     }
+
+//     // الحصول على المستخدم الحالي
+//     $userId = auth()->id();
+
+//     // استعلام الإيصالات مع البيانات المرتبطة
+//     $receipts = Receipt::where('user_id', $userId)
+//         ->with(['user', 'bank', 'market'])
+//         ->get();
+
+//     if ($receipts->isEmpty()) {
+//         return response()->json([
+//             'message' => 'No receipts associated with the current user',
+//         ], 404);
+//     }
+
+//     return response()->json([
+//         'message' => 'User receipts retrieved successfully',
+//         'receipts' => $receipts,
+//     ], 200);
+// }
+public function getReceipts(Request $request)
 {
     if (!auth()->check()) {
         return response()->json([
@@ -34,22 +62,29 @@ class ReceiptController extends Controller
         ], 401);
     }
 
-    // الحصول على المستخدم الحالي
-    $userId = auth()->id();
+    $user = auth()->user();
 
-    // استعلام الإيصالات مع البيانات المرتبطة
-    $receipts = Receipt::where('user_id', $userId)
-        ->with(['user', 'bank', 'market'])
-        ->get();
+    if ($user->role === 'admin') {
+        // عرض جميع الإيصالات إذا كان المستخدم Admin
+        $receipts = Receipt::with(['user', 'market', 'bank'])->get();
+    } elseif ($user->role === 'user') {
+        // عرض الإيصالات المرتبطة بالمستخدم الحالي
+        $receipts = $user->receipts()->with(['market', 'bank'])->get();
+    } else {
+        return response()->json([
+            'error' => true,
+            'message' => 'Invalid user role',
+        ], 403);
+    }
 
     if ($receipts->isEmpty()) {
         return response()->json([
-            'message' => 'No receipts associated with the current user',
+            'message' => 'No receipts available',
         ], 404);
     }
 
     return response()->json([
-        'message' => 'User receipts retrieved successfully',
+        'message' => 'Receipts retrieved successfully',
         'receipts' => $receipts,
     ], 200);
 }
