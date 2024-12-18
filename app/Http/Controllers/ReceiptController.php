@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Receipt;
+use App\Models\UserTransaction;
 use App\Models\Market;
 use App\Models\Bank;
 use Illuminate\Http\Request;
@@ -53,6 +54,43 @@ class ReceiptController extends Controller
 //         'receipts' => $receipts,
 //     ], 200);
 // }
+// public function getReceipts(Request $request)
+// {
+//     if (!auth()->check()) {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'You Are Not Authenticated',
+//         ], 401);
+//     }
+
+//     $user = auth()->user();
+
+//     if ($user->role === 'admin') {
+//         // عرض جميع الإيصالات إذا كان المستخدم Admin
+//         $receipts = Receipt::with(['user', 'market', 'bank'])->get();
+//     } elseif ($user->role === 'user') {
+//         // عرض الإيصالات المرتبطة بالمستخدم الحالي
+//         $receipts = $user->receipts()->with(['market', 'bank'])->get();
+//     } else {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'Invalid user role',
+//         ], 403);
+//     }
+
+//     if ($receipts->isEmpty()) {
+//         return response()->json([
+//             'message' => 'No receipts available',
+//         ], 404);
+//     }
+
+//     return response()->json([
+//         'message' => 'Receipts retrieved successfully',
+//         'receipts' => $receipts,
+//     ], 200);
+// }
+
+
 public function getReceipts(Request $request)
 {
     if (!auth()->check()) {
@@ -83,12 +121,19 @@ public function getReceipts(Request $request)
         ], 404);
     }
 
+    // تعديل الصورة في كل إيصال
+    $receipts = $receipts->map(function ($receipt) {
+        if ($receipt->image) {
+            $receipt->image = asset('storage/' . $receipt->image);
+        }
+        return $receipt;
+    });
+
     return response()->json([
         'message' => 'Receipts retrieved successfully',
         'receipts' => $receipts,
     ], 200);
 }
-
 
 public function store(Request $request)
 {
@@ -111,8 +156,6 @@ public function store(Request $request)
         ], 500);
     }
 
-    // تسجيل قيمة role للمساعدة في التتبع
-    \Log::info('User Role: ' . $user->role);
 
     // التحقق من الدور وتحديد البيانات المطلوبة بناءً عليه
     if ($user->role === 'admin') {
@@ -143,6 +186,7 @@ public function store(Request $request)
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // التحقق من الصورة
         ]);
 
+
         $userId = $user->id; // تعيين user_id للمستخدم الحالي
     } else {
         // إذا كان الدور غير معروف
@@ -172,6 +216,22 @@ public function store(Request $request)
         'status' => 'not_received', // الحالة الافتراضية
     ]);
 
+    $newBalance = $user->balance;
+
+    $user->increment('balance', $validated['amount']); // زيادة الرصيد
+    // تسجيل الحركة المالية
+    
+    UserTransaction::create([
+        'user_id' => $user->id,
+        'receipt_id' => $receipt->id,
+        'type' => 'not_received',
+        'amount' => $validated['amount'],
+        'balance_after' => $newBalance,
+    ]);
+                // if ($validated['status'] === 'received') {
+                // } elseif ($validated['status'] === 'delivered') {
+                //     $user->decrement('balance', $validated['amount']); // خفض الرصيد
+                // }
     // استجابة بنجاح إنشاء الإيصال
     return response()->json([
         'message' => 'Receipt created successfully',
@@ -187,7 +247,7 @@ public function store(Request $request)
             'message' => 'You Are Not Authenticated',
         ], 401);
     }
-
+    $user = auth()->user();
     $validated = $request->validate([
         'status' => 'required|in:received,not_received',
     ]);
@@ -200,9 +260,17 @@ public function store(Request $request)
             'message' => 'Receipt not found',
         ], 404);
     }
+    $newBalance = $user->balance;
 
-    $receipt->update(['status' => $validated['status']]);
-
+    $receipt->update(['status' => 'received']);
+    $user->decrement('balance', $validated['amount']); // خفض الرصيد
+    UserTransaction::create([
+        'user_id' => $user->id,
+        'receipt_id' => $receipt->id,
+        'type' => 'received',
+        'amount' => $validated['amount'],
+        'balance_after' => $newBalance,
+    ]);
     return response()->json([
         'message' => 'Receipt status updated successfully',
         'receipt' => $receipt,
