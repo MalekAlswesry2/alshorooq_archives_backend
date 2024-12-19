@@ -124,7 +124,7 @@ public function getReceipts(Request $request)
     // تعديل الصورة في كل إيصال
     $receipts = $receipts->map(function ($receipt) {
         if ($receipt->image) {
-            $receipt->image = asset('storage/' . $receipt->image);
+            $receipt->image = asset('storage/' . $receipt->image); //
         }
         return $receipt;
     });
