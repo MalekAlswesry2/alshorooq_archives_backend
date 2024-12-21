@@ -152,10 +152,12 @@ class MarketController extends Controller
     
         if ($user->role === 'admin') {
             // عرض جميع الأسواق إذا كان المستخدم Admin
-            $markets = Market::with('user')->get();
+            $markets = Market::with(['user:id,name'])->get();
         } elseif ($user->role === 'user') {
             // عرض الأسواق المرتبطة بالمستخدم الحالي
-            $markets = $user->markets()->with('user')->get();
+            // $markets = $user->markets()->with('user')->get();
+            $markets = $user->markets()->with(['user:id,name'])->get();
+
         } else {
             return response()->json([
                 'error' => true,
