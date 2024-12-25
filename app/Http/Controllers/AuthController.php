@@ -93,5 +93,41 @@ public function logout(Request $request) {
 
     return response()->json(['message' => 'User successfully signed out']);
 }
+public function updateProfile(Request $request)
+{
+    // التحقق من أن المستخدم مصادق عليه
+    if (!auth()->check()) {
+        return response()->json([
+            'error' => true,
+            'message' => 'You Are Not Authenticated',
+        ], 401);
+    }
+
+    $user = auth()->user(); // الحصول على المستخدم المصادق عليه
+
+    // التحقق من البيانات المُرسلة
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'phone' => 'required|string|unique:users,phone,' . $user->id, // 
+        'address' => 'required|string|max:255',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    // تحديث بيانات المستخدم
+    $user->update([
+        'name' => $request->name ?? $user->name,
+        'phone' => $request->phone ?? $user->phone,
+        'address' => $request->address ?? $user->address,
+    ]);
+
+    return response()->json([
+        'message' => 'User profile updated successfully',
+        'user' => $user,
+    ], 200);
+}
+
 
 }

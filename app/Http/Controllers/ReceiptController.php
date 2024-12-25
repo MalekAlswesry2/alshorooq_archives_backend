@@ -122,7 +122,8 @@ public function getReceipts(Request $request)
     if ($receipts->isEmpty()) {
         return response()->json([
             'message' => 'No receipts available',
-        ], 404);
+            'receipts' => $receipts,
+        ], 200);
     }
 
     // تعديل الصورة في كل إيصال

@@ -41,6 +41,7 @@ Route::prefix('mobile')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/profile', [AuthController::class, 'profile']);
+    Route::get('/profile/update', [AuthController::class, 'updateProfile']);
 
     Route::get('/markets', [MarketController::class, 'getMarkets']);
     Route::get('/receipts', [ReceiptController::class, 'getReceipts']);

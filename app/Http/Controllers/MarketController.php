@@ -168,7 +168,8 @@ class MarketController extends Controller
         if ($markets->isEmpty()) {
             return response()->json([
                 'message' => 'No markets available',
-            ], 404);
+                'markets' => $markets,
+            ], 200);
         }
     
         return response()->json([
