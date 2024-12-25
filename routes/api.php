@@ -8,6 +8,7 @@ use App\Http\Controllers\BankController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\ZoneController;
+use App\Http\Controllers\UserController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -73,6 +74,9 @@ Route::prefix('mobile')->group(function () {
 
         Route::get('/areas', [AreaController::class, 'allAreas']);
 
+
+        Route::get('/users', [UserController::class, 'getUsersWithUserRole']);
+
         Route::get('/zones/{zoneId}/areas', [AreaController::class, 'index']);
         // إنشاء منطقة جديدة
         Route::post('/areas', [AreaController::class, 'store']);
@@ -83,6 +87,7 @@ Route::prefix('mobile')->group(function () {
         ]);
     });
     
+
     Route::post('/user/{user}/permissions', function (\App\Models\User $user, Request $request) {
         $permissions = \App\Models\Permission::whereIn('name', $request->permissions)->pluck('id');
         $user->permissions()->sync($permissions); // sync لتحديث الصلاحيات
