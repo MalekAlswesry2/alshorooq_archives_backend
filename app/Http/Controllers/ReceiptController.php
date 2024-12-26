@@ -216,6 +216,11 @@ public function store(Request $request)
         $imagePath = $request->file('image')->store('receipts', 'public');
     }
 
+        // توليد custom_id
+        $lastReceipt = Receipt::orderBy('id', 'desc')->first();
+        $newCustomId = $lastReceipt ? str_pad($lastReceipt->id + 1, 6, '0', STR_PAD_LEFT) : '000001';
+    
+
     // إنشاء الإيصال
     $receipt = Receipt::create([
         'user_id' => $userId,
@@ -228,6 +233,7 @@ public function store(Request $request)
         'bank_id' => $validated['payment_method'] === 'transfer' ? $validated['bank_id'] : null,
         'image' => $imagePath,
         'status' => 'not_received',
+        'custom_id' => $newCustomId,
     ]);
 
     $newBalance = $user->balance;
@@ -260,6 +266,8 @@ public function store(Request $request)
     $user = auth()->user();
     $validated = $request->validate([
         'status' => 'required|in:received,not_received',
+        'system_receipt_number' => 'required|string|max:255|unique:receipts,system_receipt_number',
+
     ]);
 
     $receipt = Receipt::find($id);
@@ -272,7 +280,10 @@ public function store(Request $request)
     }
     $newBalance = $user->balance;
 
-    $receipt->update(['status' => 'received']);
+    $receipt->update([
+        'status' => 'received',
+        'system_receipt_number' => $validated['system_receipt_number']
+    ]);
     $user->decrement('balance', $validated['amount']); // خفض الرصيد
     UserTransaction::create([
         'user_id' => $user->id,

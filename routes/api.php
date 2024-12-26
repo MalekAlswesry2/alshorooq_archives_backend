@@ -29,6 +29,7 @@ use App\Http\Controllers\UserController;
 //         return $request->user();
 //     });
 // });
+Route::get('/areas', [AreaController::class, 'allAreas']);
 
 Route::prefix('mobile')->group(function () {
     // Auth Section
@@ -42,7 +43,7 @@ Route::prefix('mobile')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/profile', [AuthController::class, 'profile']);
-    Route::get('/profile/update', [AuthController::class, 'updateProfile']);
+    Route::put('/profile/update', [AuthController::class, 'updateProfile']);
 
     Route::get('/markets', [MarketController::class, 'getMarkets']);
     Route::get('/receipts', [ReceiptController::class, 'getReceipts']);

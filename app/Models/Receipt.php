@@ -18,6 +18,8 @@ class Receipt extends Model
         'image',
         'status', 
         'user_id', 
+        'custom_id',
+        'receipt_number',
     ];
     
     public function user()
