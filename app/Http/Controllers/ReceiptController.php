@@ -179,7 +179,7 @@ public function store(Request $request)
             'payment_method' => 'required|in:cash,transfer',
             'check_number' => 'nullable|string|required_if:payment_method,transfer',
             'bank_id' => 'nullable|exists:banks,id|required_if:payment_method,transfer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
         ]);
 
         $userId = $user->id;
