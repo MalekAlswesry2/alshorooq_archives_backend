@@ -8,54 +8,118 @@ use App\Models\Market;
 class MarketController extends Controller
 {
     
-    // إضافة سوق جديد
     public function store(Request $request)
-    {
-        // التحقق من المصادقة
-        if (!auth()->check()) {
-            return response()->json([
-                'error' => true,
-                'message' => 'You Are Not Authenticated',
-            ], 401);
+{
+    // التحقق من المصادقة
+    if (!auth()->check()) {
+        return response()->json([
+            'error' => true,
+            'message' => 'You Are Not Authenticated',
+        ], 401);
+    }
+
+    try {
+        $user = auth()->user();
+
+        // التحقق من البيانات بناءً على دور المستخدم
+
+        if ($user->role === 'admin') {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'phone' => 'nullable|string|max:15',
+                'address' => 'required|string|max:255',
+                'system_market_number' => 'required|string|unique:markets,system_market_number',
+                'user_id' => 'required|exists:users,id',
+            ]);
         }
 
-        try {
-            // التحقق من البيانات
+
+        // إذا كان المستخدم "user"، يتم تعيين user_id إلى معرف المستخدم المصادق عليه
+        if ($user->role === 'user') {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'phone' => 'nullable|string|max:15',
                 'address' => 'required|string|max:255',
                 'system_market_number' => 'required|string|unique:markets,system_market_number',
             ]);
-
-            // إضافة user_id للمستخدم المصادق عليه
-            $validated['user_id'] = auth()->id();
-            $validated['status'] = 'active'; // تعيين القيمة الافتراضية
-
-            // إنشاء السوق
-            $market = Market::create($validated);
-
-            return response()->json([
-                'error' => false,
-                'message' => 'Market created successfully',
-                'market' => $market,
-            ], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // الرد إذا فشل التحقق من البيانات
-            return response()->json([
-                'error' => true,
-                'message' => 'Validation failed',
-                'errors' => $e->errors(),
-            ], 400);
-        } catch (\Exception $e) {
-            // الرد إذا حدث خطأ آخر
-            return response()->json([
-                'error' => true,
-                'message' => 'Failed to create market',
-                'details' => $e->getMessage(),
-            ], 500);
         }
+
+        // تعيين الحالة الافتراضية
+        $validated['status'] = 'active';
+
+        // إنشاء السوق
+        $market = Market::create($validated);
+
+        return response()->json([
+            'error' => false,
+            'message' => 'Market created successfully',
+            'market' => $market,
+        ], 200);
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        // الرد إذا فشل التحقق من البيانات
+        return response()->json([
+            'error' => true,
+            'message' => 'Validation failed',
+            'errors' => $e->errors(),
+        ], 400);
+    } catch (\Exception $e) {
+        // الرد إذا حدث خطأ آخر
+        return response()->json([
+            'error' => true,
+            'message' => 'Failed to create market',
+            'details' => $e->getMessage(),
+        ], 500);
     }
+}
+
+    // // إضافة سوق جديد
+    // public function store(Request $request)
+    // {
+    //     // التحقق من المصادقة
+    //     if (!auth()->check()) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'You Are Not Authenticated',
+    //         ], 401);
+    //     }
+
+    //     try {
+    //         // التحقق من البيانات
+    //         $validated = $request->validate([
+    //             'name' => 'required|string|max:255',
+    //             'phone' => 'nullable|string|max:15',
+    //             'address' => 'required|string|max:255',
+    //             'system_market_number' => 'required|string|unique:markets,system_market_number',
+    //         ]);
+
+    //         // إضافة user_id للمستخدم المصادق عليه
+    //         $validated['user_id'] = auth()->id();
+    //         $validated['status'] = 'active'; // تعيين القيمة الافتراضية
+
+    //         // إنشاء السوق
+    //         $market = Market::create($validated);
+
+    //         return response()->json([
+    //             'error' => false,
+    //             'message' => 'Market created successfully',
+    //             'market' => $market,
+    //         ], 200);
+    //     } catch (\Illuminate\Validation\ValidationException $e) {
+    //         // الرد إذا فشل التحقق من البيانات
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'Validation failed',
+    //             'errors' => $e->errors(),
+    //         ], 400);
+    //     } catch (\Exception $e) {
+    //         // الرد إذا حدث خطأ آخر
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'Failed to create market',
+    //             'details' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
 
         
 
