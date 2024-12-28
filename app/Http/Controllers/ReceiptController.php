@@ -104,12 +104,12 @@ public function getReceipts(Request $request)
 
     if ($user->role === 'admin') {
         // عرض جميع الإيصالات إذا كان المستخدم Admin
-        $receipts = Receipt::with(['user', 'market', 'bank'])
+        $receipts = Receipt::with(['user', 'market', 'bank','admin'])
         ->orderBy('created_at','desc')
         ->get();
     } elseif ($user->role === 'user') {
         // عرض الإيصالات المرتبطة بالمستخدم الحالي
-        $receipts = $user->receipts()->with(['market', 'bank'])
+        $receipts = $user->receipts()->with(['market', 'bank','admin'])
         ->orderBy('created_at', 'desc')  // ترتيب حسب التاريخ من الأحدث إلى الأقدم
         ->get();
     } else {
@@ -234,6 +234,7 @@ public function store(Request $request)
         'image' => $imagePath,
         'status' => 'not_received',
         'custom_id' => $newCustomId,
+        'department' => $user->department,
     ]);
 
     $newBalance = $user->balance;
@@ -255,7 +256,8 @@ public function store(Request $request)
 }
 
 
-    public function updateStatus(Request $request, $id)
+
+public function updateStatus(Request $request)
 {
     if (!auth()->check()) {
         return response()->json([
@@ -263,40 +265,122 @@ public function store(Request $request)
             'message' => 'You Are Not Authenticated',
         ], 401);
     }
-    $user = auth()->user();
-    $validated = $request->validate([
-        'status' => 'required|in:received,not_received',
-        'system_receipt_number' => 'required|string|max:255|unique:receipts,system_receipt_number',
 
+    $admin = auth()->user();
+
+    // التحقق إذا كان المستخدم الحالي هو أدمن
+    if ($admin->role !== 'admin') {
+        return response()->json([
+            'error' => true,
+            'message' => 'You are not authorized to perform this action',
+        ], 403);
+    }
+
+    // التحقق من البيانات
+    $validated = $request->validate([
+        'barcode' => 'required|string', // الباركود
+        'system_receipt_number' => 'required|string|max:255|unique:receipts,system_receipt_number',
     ]);
 
-    $receipt = Receipt::find($id);
+    // استخراج الباركود
+    $barcode = $validated['barcode'];
+
+    // التحقق من تنسيق الباركود
+    if (!str_contains($barcode, '-')) {
+        return response()->json([
+            'error' => true,
+            'message' => 'Invalid barcode format',
+        ], 400);
+    }
+
+    // تقسيم الباركود للحصول على id و custom_id
+    [$id, $customId] = explode('-', $barcode);
+
+    // التحقق من صحة الأجزاء
+    if (!is_numeric($id) || empty($customId)) {
+        return response()->json([
+            'error' => true,
+            'message' => 'Invalid barcode components',
+        ], 400);
+    }
+
+    // التحقق من الواصل
+    $receipt = Receipt::where('id', $id)
+        ->where('custom_id', $customId)
+        ->first();
 
     if (!$receipt) {
         return response()->json([
             'error' => true,
-            'message' => 'Receipt not found',
+            'message' => 'Receipt not found or barcode mismatch',
         ], 404);
     }
-    $newBalance = $user->balance;
 
+    if ($receipt->status === 'received') {
+        return response()->json([
+            'error' => true,
+            'message' => 'The receipt status is already received. No changes will be made.',
+        ], 400);
+    }
+
+
+    // تحديث حالة الواصل
     $receipt->update([
+        'system_receipt_number' => $validated['system_receipt_number'],
+        'admin_id' => $admin->id,      
         'status' => 'received',
-        'system_receipt_number' => $validated['system_receipt_number']
     ]);
-    $user->decrement('balance', $validated['amount']); // خفض الرصيد
-    UserTransaction::create([
-        'user_id' => $user->id,
-        'receipt_id' => $receipt->id,
-        'type' => 'received',
-        'amount' => $validated['amount'],
-        'balance_after' => $newBalance,
-    ]);
+
+
     return response()->json([
         'message' => 'Receipt status updated successfully',
         'receipt' => $receipt,
     ], 200);
 }
+
+
+    // public function updateStatus(Request $request, $id)
+    // {
+    //     if (!auth()->check()) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'You Are Not Authenticated',
+    //         ], 401);
+    //     }
+    //     $user = auth()->user();
+    //     $validated = $request->validate([
+    //         'status' => 'required|in:received,not_received',
+    //         'system_receipt_number' => 'required|string|max:255|unique:receipts,system_receipt_number',
+
+    //     ]);
+
+    //     $receipt = Receipt::find($id);
+
+    //     if (!$receipt) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'Receipt not found',
+    //         ], 404);
+    //     }
+    //     $newBalance = $user->balance;
+
+    //     $receipt->update([
+    //         'status' => 'received',
+    //         'system_receipt_number' => $validated['system_receipt_number']
+    //     ]);
+    //     $user->decrement('balance', $validated['amount']); // خفض الرصيد
+    //     UserTransaction::create([
+    //         'user_id' => $user->id,
+    //         'receipt_id' => $receipt->id,
+    //         'type' => 'received',
+    //         'amount' => $validated['amount'],
+    //         'balance_after' => $newBalance,
+    //     ]);
+    //     return response()->json([
+    //         'message' => 'Receipt status updated successfully',
+    //         'receipt' => $receipt,
+    //     ], 200);
+    // }
 
     
 }

@@ -18,8 +18,11 @@ class Receipt extends Model
         'image',
         'status', 
         'user_id', 
+        'admin_id', 
         'custom_id',
         'receipt_number',
+        'department',
+        'system_receipt_number',
     ];
     
     public function user()
@@ -27,6 +30,10 @@ class Receipt extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
     
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_id');
+    }
 
     public function market()
     {

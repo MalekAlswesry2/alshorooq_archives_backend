@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -32,6 +33,32 @@ class UserController extends Controller
         return response()->json([
             'message' => 'Users retrieved successfully',
             'users' => $users,
+        ], 200);
+    }
+
+    public function addAdmin(Request $request)
+    {
+        // التحقق من البيانات المدخلة
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'required|string|unique:users,phone|max:15',
+            'department' => 'required|string|max:255',
+        ]);
+
+        // إنشاء المسؤول الجديد
+        $admin = User::create([
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'],
+            'department' => $validatedData['department'],
+            'password' => Hash::make('12345678'), // كلمة مرور افتراضية يمكن تغييرها لاحقًا
+            'role' => 'admin', // الدور يحدد كـ admin تلقائيًا
+        ]);
+
+        return response()->json([
+            'message' => 'Admin created successfully!',
+            'admin' => $admin,
         ], 200);
     }
 }

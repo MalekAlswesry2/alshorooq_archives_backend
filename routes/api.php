@@ -29,9 +29,11 @@ use App\Http\Controllers\UserController;
 //         return $request->user();
 //     });
 // });
-Route::get('/areas', [AreaController::class, 'allAreas']);
 
 Route::prefix('mobile')->group(function () {
+
+    Route::get('/areas', [AreaController::class, 'allAreas']);
+
     // Auth Section
     Route::prefix('auth')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
@@ -41,6 +43,12 @@ Route::prefix('mobile')->group(function () {
     // End Auth Section
     // Protected Routes
     Route::middleware('auth:sanctum')->group(function () {
+
+
+    // add admins
+    Route::post('/add-admin', [UserController::class, 'addAdmin']);
+
+    // Route::middleware(['auth:sanctum', 'admin'])->post('/add-admin', [UserController::class, 'addAdmin']);
 
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::put('/profile/update', [AuthController::class, 'updateProfile']);
@@ -63,7 +71,8 @@ Route::prefix('mobile')->group(function () {
         // Route::get('/current_user-receipts', [ReceiptController::class, 'userReceipts']);
         // Route::get('/', [ReceiptController::class, 'index']); // عرض جميع الإيصالات
         Route::post('/', [ReceiptController::class, 'store']); // إضافة إيصال جديد
-        Route::put('/{id}/status', [ReceiptController::class, 'updateStatus']); // تحديث حالة الإيصال
+        // Route::put('/{id}/status', [ReceiptController::class, 'updateStatus']); // تحديث حالة الإيصال
+        Route::put('/update-status', [ReceiptController::class, 'updateStatus']); // تحديث حالة الإيصال
     });
     // Route::get('/markets', [MarketController::class, 'index'])->middleware('permission:can_view');
     // Route::post('/markets', [MarketController::class, 'store'])->middleware('permission:can_edit');

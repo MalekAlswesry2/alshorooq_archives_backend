@@ -25,6 +25,6 @@ class ZoneController extends Controller
         return response()->json([
             'message' => 'Zone created successfully',
             'zone' => $zone,
-        ], 201);
+        ], 200);
     }
 }

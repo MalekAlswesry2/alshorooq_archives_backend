@@ -61,6 +61,6 @@ class AreaController extends Controller
         return response()->json([
             'message' => 'Area created successfully',
             'area' => $area,
-        ], 201);
+        ], 200);
     }
 }
