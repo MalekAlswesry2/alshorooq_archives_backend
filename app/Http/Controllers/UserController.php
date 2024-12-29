@@ -30,6 +30,16 @@ class UserController extends Controller
             ], 200);
         }
 
+
+
+        // $users = $users->map(function ($user) {
+         
+    
+        //     $user['balance'] = (double)$user->balance;
+
+        //     return $user;
+        // });
+
         return response()->json([
             'message' => 'Users retrieved successfully',
             'users' => $users,

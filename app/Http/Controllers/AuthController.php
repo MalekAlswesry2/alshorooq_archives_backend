@@ -55,6 +55,7 @@ public function login(Request $request)
     if (Auth::attempt($credentials)) {
         $user = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
+        $user['balance'] = (double)$user->balance;
 
         return response()->json([
             'message' => 'Login successful',
@@ -78,6 +79,8 @@ public function profile()
     }
 
     $user = auth()->user(); // الحصول على المستخدم المصادق عليه
+
+    $user['balance'] = (double)$user->balance;
 
     return response()->json([
         'message' => 'User profile retrieved successfully',

@@ -22,7 +22,7 @@ class MarketController extends Controller
         $user = auth()->user();
 
         // التحقق من البيانات بناءً على دور المستخدم
-
+        $userId = $user->id;
         if ($user->role === 'admin') {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -42,6 +42,8 @@ class MarketController extends Controller
                 'address' => 'required|string|max:255',
                 'system_market_number' => 'required|string|unique:markets,system_market_number',
             ]);
+            $validated['user_id'] = $userId;
+
         }
 
         // تعيين الحالة الافتراضية

@@ -82,7 +82,7 @@ Route::prefix('mobile')->group(function () {
         Route::post('/zones', [ZoneController::class, 'store']);
    
 
-        Route::get('/areas', [AreaController::class, 'allAreas']);
+        // Route::get('/areas', [AreaController::class, 'allAreas']);
 
 
         Route::get('/users', [UserController::class, 'getUsersWithUserRole']);

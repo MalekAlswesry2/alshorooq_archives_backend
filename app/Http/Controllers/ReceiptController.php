@@ -103,10 +103,12 @@ public function getReceipts(Request $request)
     $user = auth()->user();
 
     if ($user->role === 'admin') {
+
         // عرض جميع الإيصالات إذا كان المستخدم Admin
         $receipts = Receipt::with(['user', 'market', 'bank','admin'])
         ->orderBy('created_at','desc')
         ->get();
+        
     } elseif ($user->role === 'user') {
         // عرض الإيصالات المرتبطة بالمستخدم الحالي
         $receipts = $user->receipts()->with(['market', 'bank','admin'])
@@ -131,6 +133,9 @@ public function getReceipts(Request $request)
         if ($receipt->image) {
             $receipt->image = asset('storage/' . $receipt->image); 
         }
+
+        $receipt['amount'] = (double)$receipt->amount;
+
         return $receipt;
     });
 
