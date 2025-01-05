@@ -94,6 +94,63 @@ class ReceiptController extends Controller
 // }
 
 
+// public function getReceipts(Request $request)
+// {
+//     if (!auth()->check()) {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'You Are Not Authenticated',
+//         ], 401);
+//     }
+
+//     $user = auth()->user();
+
+//     if ($user->role === 'admin') {
+
+//         // عرض جميع الإيصالات إذا كان المستخدم Admin
+//         $receipts = Receipt::with(['user', 'market', 'bank','admin','department:id,name','branch:id,name'])
+//         ->orderBy('created_at','desc')
+//         ->get();
+        
+//     } elseif ($user->role === 'user') {
+//         // عرض الإيصالات المرتبطة بالمستخدم الحالي
+//         $receipts = $user->receipts->with(['market', 'bank','admin','department:id,name','branch:id,name'])
+//         ->orderBy('created_at', 'desc')  // ترتيب حسب التاريخ من الأحدث إلى الأقدم
+//         ->get();
+//     } else {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'Invalid user role',
+//         ], 403);
+//     }
+
+//     if ($receipts->isEmpty()) {
+//         return response()->json([
+//             'message' => 'No receipts available',
+//             'receipts' => $receipts,
+//         ], 200);
+//     }
+
+//     // تعديل الصورة في كل إيصال
+//     $receipts = $receipts->map(function ($receipt) {
+//         if ($receipt->image) {
+//             $receipt['image'] = asset('storage/' . $receipt->image); 
+//             // $receipt->image = storage_path(). $receipt->image; 
+//             // $receipt['image'] = Storage::disk('public')->get($receipt->image);
+//             // $receipt['image'] = Storage::url($receipt->image); 
+
+//         }
+
+//         $receipt['amount'] = (double)$receipt->amount;
+
+//         return $receipt;
+//     });
+
+//     return response()->json([
+//         'message' => 'Receipts retrieved successfully',
+//         'receipts' => $receipts,
+//     ], 200);
+// }
 public function getReceipts(Request $request)
 {
     if (!auth()->check()) {
@@ -106,17 +163,16 @@ public function getReceipts(Request $request)
     $user = auth()->user();
 
     if ($user->role === 'admin') {
-
         // عرض جميع الإيصالات إذا كان المستخدم Admin
-        $receipts = Receipt::with(['user', 'market', 'bank','admin','department:id,name','branch:id,name'])
-        ->orderBy('created_at','desc')
-        ->get();
-        
+        $receipts = Receipt::with(['user', 'market', 'bank', 'admin', 'department:id,name', 'branch:id,name'])
+            ->orderBy('created_at', 'desc')
+            ->get();
     } elseif ($user->role === 'user') {
         // عرض الإيصالات المرتبطة بالمستخدم الحالي
-        $receipts = $user->receipts->with(['market', 'bank','admin','department:id,name','branch:id,name'])
-        ->orderBy('created_at', 'desc')  // ترتيب حسب التاريخ من الأحدث إلى الأقدم
-        ->get();
+        $receipts = Receipt::with(['market', 'bank', 'admin', 'department:id,name', 'branch:id,name'])
+            ->where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
     } else {
         return response()->json([
             'error' => true,
@@ -134,11 +190,7 @@ public function getReceipts(Request $request)
     // تعديل الصورة في كل إيصال
     $receipts = $receipts->map(function ($receipt) {
         if ($receipt->image) {
-            $receipt['image'] = asset('storage/' . $receipt->image); 
-            // $receipt->image = storage_path(). $receipt->image; 
-            // $receipt['image'] = Storage::disk('public')->get($receipt->image);
-            // $receipt['image'] = Storage::url($receipt->image); 
-
+            $receipt['image'] = asset('storage/' . $receipt->image);
         }
 
         $receipt['amount'] = (double)$receipt->amount;
