@@ -56,6 +56,7 @@ public function login(Request $request)
 
     if (Auth::attempt($credentials)) {
         $user = Auth::user();
+        $user->load('department:id,name','branch:id,name');
         $token = $user->createToken('auth_token')->plainTextToken;
         $user['balance'] = (double)$user->balance;
 
