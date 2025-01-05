@@ -5,7 +5,10 @@ use App\Models\Receipt;
 use App\Models\UserTransaction;
 use App\Models\Market;
 use App\Models\Bank;
+use App\Models\Log;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ReceiptController extends Controller
 {
@@ -105,13 +108,13 @@ public function getReceipts(Request $request)
     if ($user->role === 'admin') {
 
         // عرض جميع الإيصالات إذا كان المستخدم Admin
-        $receipts = Receipt::with(['user', 'market', 'bank','admin'])
+        $receipts = Receipt::with(['user', 'market', 'bank','admin','department:id,name','branch:id,name'])
         ->orderBy('created_at','desc')
         ->get();
         
     } elseif ($user->role === 'user') {
         // عرض الإيصالات المرتبطة بالمستخدم الحالي
-        $receipts = $user->receipts()->with(['market', 'bank','admin'])
+        $receipts = $user->receipts->with(['market', 'bank','admin','department:id,name','branch:id,name'])
         ->orderBy('created_at', 'desc')  // ترتيب حسب التاريخ من الأحدث إلى الأقدم
         ->get();
     } else {
@@ -131,7 +134,11 @@ public function getReceipts(Request $request)
     // تعديل الصورة في كل إيصال
     $receipts = $receipts->map(function ($receipt) {
         if ($receipt->image) {
-            $receipt->image = asset('storage/' . $receipt->image); 
+            $receipt['image'] = asset('storage/' . $receipt->image); 
+            // $receipt->image = storage_path(). $receipt->image; 
+            // $receipt['image'] = Storage::disk('public')->get($receipt->image);
+            // $receipt['image'] = Storage::url($receipt->image); 
+
         }
 
         $receipt['amount'] = (double)$receipt->amount;
@@ -144,6 +151,7 @@ public function getReceipts(Request $request)
         'receipts' => $receipts,
     ], 200);
 }
+
 
 public function store(Request $request)
 {
@@ -172,10 +180,39 @@ public function store(Request $request)
             'payment_method' => 'required|in:cash,transfer',
             'check_number' => 'nullable|string|required_if:payment_method,transfer',
             'bank_id' => 'nullable|exists:banks,id|required_if:payment_method,transfer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:8096',
+            // 'department_id' => 'required|exists:departments,id',
+            // 'branch_id' => 'required|exists:branches,id',
         ]);
 
-        $userId = $validated['user_id'];
+
+
+        $validated['user_id'] = $request->input('user_id'); 
+        $selectedUserId = $validated['user_id'];
+        $selectedUser = User::find($selectedUserId);
+
+        if (!$selectedUser) {
+            return response()->json([
+                'error' => true,
+                'message' => 'User not found',
+            ], 404);
+        }
+
+        
+        $department = $selectedUser->department; 
+        $branch = $selectedUser->branch; 
+
+        if (!$department || !$branch) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Department or branch not assigned to this user',
+            ], 400);
+        }
+        $validated['department_id'] = $department->id; 
+        $validated['branch_id'] = $branch->id; 
+
+
+        // $userId = $validated['user_id'];
     } elseif ($user->role === 'user') {
         $validated = $request->validate([
             'market_id' => 'required|exists:markets,id',
@@ -184,10 +221,16 @@ public function store(Request $request)
             'payment_method' => 'required|in:cash,transfer',
             'check_number' => 'nullable|string|required_if:payment_method,transfer',
             'bank_id' => 'nullable|exists:banks,id|required_if:payment_method,transfer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:8096',
         ]);
 
+        // استخدام قسم وفرع المستخدم الحالي
+        $validated['department_id'] = $user->department_id;
+        $validated['branch_id'] = $user->branch_id;
+
         $userId = $user->id;
+        $validated['user_id'] = $userId;
+
     } else {
         return response()->json([
             'error' => true,
@@ -195,25 +238,23 @@ public function store(Request $request)
         ], 403);
     }
 
-   // جلب بيانات السوق للتحقق من وجوده والحصول على client_number
-   $market = Market::find($validated['market_id']);
-   if (!$market) {
-       return response()->json([
-           'error' => true,
-           'message' => 'Market not found',
-       ], 404);
-   }
+    // جلب بيانات السوق للتحقق من وجوده والحصول على client_number
+    $market = Market::find($validated['market_id']);
+    if (!$market) {
+        return response()->json([
+            'error' => true,
+            'message' => 'Market not found',
+        ], 404);
+    }
 
-   // تحقق من وجود client_number في السوق
-   if (empty($market->system_market_number)) {
-       return response()->json([
-           'error' => true,
-           'message' => 'Market does not have a client number.',
-       ], 400);
-   }
+    if (empty($market->system_market_number)) {
+        return response()->json([
+            'error' => true,
+            'message' => 'Market does not have a client number.',
+        ], 400);
+    }
 
-   // تعيين client_number من بيانات السوق
-   $clientNumber = $market->system_market_number;
+    $clientNumber = $market->system_market_number;
 
     // التعامل مع رفع الصورة
     $imagePath = null;
@@ -221,26 +262,20 @@ public function store(Request $request)
         $imagePath = $request->file('image')->store('receipts', 'public');
     }
 
-        // توليد custom_id
-        $lastReceipt = Receipt::orderBy('id', 'desc')->first();
-        $newCustomId = $lastReceipt ? str_pad($lastReceipt->id + 1, 6, '0', STR_PAD_LEFT) : '000001';
-    
+    //  custom_id
+    $lastReceipt = Receipt::orderBy('id', 'desc')->first();
+    $newCustomId = $lastReceipt ? str_pad($lastReceipt->id + 1, 6, '0', STR_PAD_LEFT) : '000001';
+
+
+    $validated['custom_id'] = $newCustomId;
+    $validated['client_number'] = $clientNumber;
+    $validated['custom_id'] = $newCustomId;
+    $validated['image'] = $imagePath;
 
     // إنشاء الإيصال
-    $receipt = Receipt::create([
-        'user_id' => $userId,
-        'market_id' => $validated['market_id'],
-        'client_number' => $clientNumber, // استخدام client_number من السوق
-        'reference_number' => $validated['reference_number'],
-        'amount' => $validated['amount'],
-        'payment_method' => $validated['payment_method'],
-        'check_number' => $validated['payment_method'] === 'transfer' ? $validated['check_number'] : null,
-        'bank_id' => $validated['payment_method'] === 'transfer' ? $validated['bank_id'] : null,
-        'image' => $imagePath,
-        'status' => 'not_received',
-        'custom_id' => $newCustomId,
-        'department' => $user->department,
-    ]);
+    $receipt = Receipt::create(
+        $validated
+    );
 
     $newBalance = $user->balance;
     $user->increment('balance', $validated['amount']);
@@ -254,11 +289,145 @@ public function store(Request $request)
         'balance_after' => $newBalance,
     ]);
 
+    Log::addLog(
+        'إضافة إيصال',
+        "تم إضافة إيصال جديد بواسطة {$user->name}",
+        $user->id
+    );
     return response()->json([
         'message' => 'Receipt created successfully',
         'receipt' => $receipt,
     ], 200);
+
+
 }
+
+
+
+// public function store(Request $request)
+// {
+//     if (!auth()->check()) {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'You Are Not Authenticated',
+//         ], 401);
+//     }
+
+//     $user = auth()->user();
+
+//     if (!$user->role) {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'User role is not defined. Please check the role field.',
+//         ], 500);
+//     }
+
+//     if ($user->role === 'admin') {
+//         $validated = $request->validate([
+//             'user_id' => 'required|exists:users,id',
+//             'market_id' => 'required|exists:markets,id',
+//             'reference_number' => 'required|string|unique:receipts,reference_number|max:50',
+//             'amount' => 'required|numeric|min:0',
+//             'payment_method' => 'required|in:cash,transfer',
+//             'check_number' => 'nullable|string|required_if:payment_method,transfer',
+//             'bank_id' => 'nullable|exists:banks,id|required_if:payment_method,transfer',
+//             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:8096',
+//         ]);
+//             $validated['user_id'] = $request->input('user_id'); 
+//             $selectedUserId = $validated['user_id'];
+//             $selectedUser = User::find($selectedUserId);
+
+//             if (!$selectedUser) {
+//                 return response()->json([
+//                     'error' => true,
+//                     'message' => 'User not found',
+//                 ], 404);
+//             }
+//         $userId = $validated['user_id'];
+//     } elseif ($user->role === 'user') {
+//         $validated = $request->validate([
+//             'market_id' => 'required|exists:markets,id',
+//             'reference_number' => 'required|string|unique:receipts,reference_number|max:50',
+//             'amount' => 'required|numeric|min:0',
+//             'payment_method' => 'required|in:cash,transfer',
+//             'check_number' => 'nullable|string|required_if:payment_method,transfer',
+//             'bank_id' => 'nullable|exists:banks,id|required_if:payment_method,transfer',
+//             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:8096',
+//         ]);
+
+//         $userId = $user->id;
+//     } else {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'Invalid user role',
+//         ], 403);
+//     }
+
+//    // جلب بيانات السوق للتحقق من وجوده والحصول على client_number
+//    $market = Market::find($validated['market_id']);
+//    if (!$market) {
+//        return response()->json([
+//            'error' => true,
+//            'message' => 'Market not found',
+//        ], 404);
+//    }
+
+//    // تحقق من وجود client_number في السوق
+//    if (empty($market->system_market_number)) {
+//        return response()->json([
+//            'error' => true,
+//            'message' => 'Market does not have a client number.',
+//        ], 400);
+//    }
+
+//    // تعيين client_number من بيانات السوق
+//    $clientNumber = $market->system_market_number;
+
+//     // التعامل مع رفع الصورة
+//     $imagePath = null;
+//     if ($request->hasFile('image')) {
+//         $imagePath = $request->file('image')->store('receipts', 'public');
+//     }
+
+//         // توليد custom_id
+//         $lastReceipt = Receipt::orderBy('id', 'desc')->first();
+//         $newCustomId = $lastReceipt ? str_pad($lastReceipt->id + 1, 6, '0', STR_PAD_LEFT) : '000001';
+    
+
+//     // إنشاء الإيصال
+//     $receipt = Receipt::create([
+//         'user_id' => $userId,
+//         'market_id' => $validated['market_id'],
+//         'client_number' => $clientNumber, // استخدام client_number من السوق
+//         'reference_number' => $validated['reference_number'],
+//         'amount' => $validated['amount'],
+//         'payment_method' => $validated['payment_method'],
+//         'check_number' => $validated['payment_method'] === 'transfer' ? $validated['check_number'] : null,
+//         'bank_id' => $validated['payment_method'] === 'transfer' ? $validated['bank_id'] : null,
+//         'image' => $imagePath,
+//         'status' => 'not_received',
+//         'custom_id' => $newCustomId,
+//         'department_id' => $user->department_id,
+//         'branch_id' => $user->branch_id,
+//     ]);
+
+//     $newBalance = $user->balance;
+//     $user->increment('balance', $validated['amount']);
+
+//     // تسجيل الحركة المالية
+//     UserTransaction::create([
+//         'user_id' => $user->id,
+//         'receipt_id' => $receipt->id,
+//         'type' => 'not_received',
+//         'amount' => $validated['amount'],
+//         'balance_after' => $newBalance,
+//     ]);
+
+//     return response()->json([
+//         'message' => 'Receipt created successfully',
+//         'receipt' => $receipt,
+//     ], 200);
+// }
 
 
 
@@ -336,6 +505,11 @@ public function updateStatus(Request $request)
         'status' => 'received',
     ]);
 
+    Log::addLog(
+        'استلام إيصال',
+        "تم استلام إيصال رقم {$customId} بواسطة {$admin->name}",
+        $admin->id
+    );
 
     return response()->json([
         'message' => 'Receipt status updated successfully',

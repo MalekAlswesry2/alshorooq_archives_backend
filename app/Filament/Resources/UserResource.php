@@ -4,58 +4,119 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
+use App\Models\Branch;
+use App\Models\Department;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\Alignment;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
+    protected static ?int $navigationSort = 1;
+    protected static ?string $recordTitleAttribute = 'Users';
+    protected static ?string $modelLabel = 'Admin';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('name')
+                    ->required()
+                    ->maxLength(255)
+                    
+                    ,
+                Forms\Components\TextInput::make('phone')
+                    ->tel()
+                    ->maxLength(255),
 
-                TextInput::make('name')->required(),
-                TextInput::make('phone')->required()->unique(),
-                TextInput::make('password')->password()->required(),
-                TextInput::make('email')->email()->required()->unique(),
-                // TextInput::make('role')->hidden()->required()->default('admin'),
-                TextInput::make('role')->readOnly()->required()->default('admin'),
-                Select::make('department')->required()->options([
-                    'all' => 'All',
-                    'alshoroq' => 'الشروق',
-                    'omalk' => 'العملاق',
-                ]),
-                // TextInput::make('role'),        
-                ]);
+                    Select::make('department_id')
+                    ->label('Department')
+                    ->options(Department::all()->pluck('name', 'id'))
+                    ->searchable(),
+
+                    Select::make('branch_id')
+                    ->label('Branch')
+                    ->options(Branch::all()->pluck('name', 'id'))
+                    ->searchable(),
+                    // Forms\Components\Select::make('department')->required()->options([
+                    //     'all' => 'All',
+                    //     'alshoroq' => 'الشروق',
+                    //     'omalk' => 'العملاق',
+                    // ]),
+                Forms\Components\TextInput::make('address')
+                    ->maxLength(255),
+
+                Forms\Components\TextInput::make('role')
+                    ->maxLength(255)
+                    ->default('admin')
+                    ->readOnly(),
+
+                Forms\Components\TextInput::make('email')
+                    ->email()
+                    ->unique()
+                    ->required()
+                    ->maxLength(255),
+                    // ->visibleOn(),
+     
+                Forms\Components\TextInput::make('password')
+                    ->password()
+                    ->required()
+                    ->maxLength(255),
+            ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make("name"),
-                TextColumn::make("email"),
-                TextColumn::make("role"),
-                TextColumn::make("department"),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable()
+                    ->alignCenter(),
+                Tables\Columns\TextColumn::make('phone')
+                    ->searchable()
+                    ->alignCenter(),
+                    
+                Tables\Columns\TextColumn::make('branch.name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('department.name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('address')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('role')
+                    ->searchable(),
+                // Tables\Columns\TextColumn::make('balance')
+                //     ->numeric()
+                //     ->sortable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable(),
+
+                // Tables\Columns\TextColumn::make('created_at')
+                //     ->dateTime()
+                //     ->sortable()
+                //     ->toggleable(isToggledHiddenByDefault: true),
+  
             ])
             ->filters([
-                //
+                SelectFilter::make('branch')->relationship('branch', 'name'),
+
+                SelectFilter::make('department')->relationship('department', 'name'),
+
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -77,6 +138,7 @@ class UserResource extends Resource
         return [
             'index' => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
+            'view' => Pages\ViewUser::route('/{record}'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }

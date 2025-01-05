@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Home</title>
 </head>
-<body>
+<body dir="rtl">
     This Home page
 </body>
 </html>

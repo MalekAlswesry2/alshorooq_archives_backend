@@ -14,7 +14,9 @@ class Market extends Model
         'user_id',
         'address',
         'system_market_number',
-        'status', // حالة السوق
+        'status',  
+        'branch_id',
+        'department_id'
 
     ];
 
@@ -22,5 +24,12 @@ class Market extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
-    
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+    public function branch()
+{
+    return $this->belongsTo(Branch::class);
+}
 }

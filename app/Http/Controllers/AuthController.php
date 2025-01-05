@@ -14,7 +14,8 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'phone' => 'required|string|unique:users,phone',
-            'department' => 'required|string|max:255',
+            'department_id' => 'required|string|max:255',
+            'branch_id' => 'required|string|max:255',
             'address' => 'required|string|max:255',
             // 'status' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
@@ -30,7 +31,8 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'phone' => $request->phone,
-            'department' => $request->department,
+            'department_id' => $request->department_id,
+            'branch_id' => $request->branch_id,
             'address' => $request->address,
             'status' => 'active', // الحالة الافتراضية
             'email' => $request->email,

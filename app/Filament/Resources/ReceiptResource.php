@@ -6,11 +6,13 @@ use App\Filament\Resources\ReceiptResource\Pages;
 use App\Filament\Resources\ReceiptResource\RelationManagers;
 use App\Models\Receipt;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +23,7 @@ class ReceiptResource extends Resource
     protected static ?string $model = Receipt::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-newspaper';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -34,11 +37,13 @@ class ReceiptResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('custom_id'),
+                TextColumn::make('custom_id')
+                ->label("ID"),
+                TextColumn::make('user.name'),
+
                 TextColumn::make('reference_number'),
                 TextColumn::make('amount')->money('LYD'),
                 TextColumn::make('bank.name'),
-                TextColumn::make('user.name'),
                 TextColumn::make('payment_method'),
                 TextColumn::make('check_number'),
                 TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state){
@@ -52,15 +57,43 @@ class ReceiptResource extends Resource
 
             ])
             ->filters([
+                
+                SelectFilter::make('department')->relationship('department', 'name'),
+                SelectFilter::make('branch')->relationship('branch', 'name'),
+
                 SelectFilter::make('status')
                 ->options(
-                   [
+                [
                     'received'=>'received',
                     'not_received'=>'not received'
-                   ]
-                )->attribute('status')
+                ]
+                )->attribute('status'),
+                SelectFilter::make('payment_method')
+                ->options(
+                [
+                    'transfer'=>'transfer',
+                    'cash'=>'cash'
+                ]
+                )->attribute('payment_method'),
+                Filter::make('created_at')
+                ->form([
+                    DatePicker::make('created_from'),
+                    DatePicker::make('created_until'),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                        ->when(
+                            $data['created_from'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                        )
+                        ->when(
+                            $data['created_until'],
+                            fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                        );
+                })
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -82,6 +115,7 @@ class ReceiptResource extends Resource
         return [
             'index' => Pages\ListReceipts::route('/'),
             'create' => Pages\CreateReceipt::route('/create'),
+            'view' => Pages\ViewReceipt::route('/{record}'),
             'edit' => Pages\EditReceipt::route('/{record}/edit'),
         ];
     }

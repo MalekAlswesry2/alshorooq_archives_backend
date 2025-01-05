@@ -8,18 +8,14 @@ use App\Models\Area;
 use App\Models\Zone;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\QueryBuilder\Constraints\DateConstraint;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-
-use function Laravel\Prompts\select;
 
 class AreaResource extends Resource
 {
@@ -27,15 +23,21 @@ class AreaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
+    protected static ?string $navigationGroup = "Location";
+
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('name'),
+                Forms\Components\TextInput::make('name')
+                ->required()
+                ->maxLength(255),
                 Select::make('zone_id')
                 ->label('Area')
                 ->options(Zone::all()->pluck('name', 'id'))
                 ->searchable()
+
             ]);
     }
 
@@ -43,11 +45,12 @@ class AreaResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id'),
-                TextColumn::make('name'),
+                TextColumn::make('name')
+                ->searchable(),
+                TextColumn::make('zone.name'),
+
             ])
             ->filters([
-                // DateConstraint::make('saf'), // Filter the `created_at` column
                 SelectFilter::make('zone_id')
                 ->options(
                     Zone::all()->pluck('name', 'id')

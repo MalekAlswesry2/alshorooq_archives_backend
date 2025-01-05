@@ -21,7 +21,8 @@ class Receipt extends Model
         'admin_id', 
         'custom_id',
         'receipt_number',
-        'department',
+        'department_id',
+        'branch_id',
         'system_receipt_number',
     ];
     
@@ -44,4 +45,14 @@ class Receipt extends Model
     {
         return $this->belongsTo(Bank::class);
     }
+
+    public function department()
+{
+    return $this->belongsTo(Department::class);
+}
+
+public function branch()
+{
+    return $this->belongsTo(Branch::class);
+}
 }

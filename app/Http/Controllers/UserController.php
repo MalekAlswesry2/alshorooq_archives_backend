@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Artisan;
 
 class UserController extends Controller
 {
@@ -12,7 +13,7 @@ class UserController extends Controller
      * عرض جميع المستخدمين الذين لديهم دور user.
      */
     public function getUsersWithUserRole()
-    {
+    { 
         if (!auth()->check()) {
             return response()->json([
                 'error' => true,
@@ -21,7 +22,7 @@ class UserController extends Controller
         }
 
         // $users = User::where('role', 'user')->get(['id', 'name', 'email', 'phone', 'address', 'department']);
-        $users = User::all(['id', 'name', 'email', 'phone', 'address', 'department', 'role']);
+        $users = User::all(['id', 'name', 'email', 'phone', 'address', 'department_id', 'branch_id', 'role']);
 
         if ($users->isEmpty()) {
             return response()->json([
@@ -53,7 +54,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|unique:users,phone|max:15',
-            'department' => 'required|string|max:255',
+            // 'department_id' => 'required|string|max:255',
+            // 'bramch_id' => 'required|string|max:255',
         ]);
 
         // إنشاء المسؤول الجديد
@@ -71,4 +73,18 @@ class UserController extends Controller
             'admin' => $admin,
         ], 200);
     }
+
+
+    // ربط ملف الببلك
+    // public function createStorageLink()
+    // {
+    //     // تنفيذ أمر Artisan
+    //     Artisan::call('storage:link');
+
+    //     // التحقق من النتيجة وإعادة الرد
+    //     return response()->json([
+    //         'message' => 'Storage link created successfully!',
+    //         'output' => Artisan::output(),
+    //     ]);
+    // }
 }

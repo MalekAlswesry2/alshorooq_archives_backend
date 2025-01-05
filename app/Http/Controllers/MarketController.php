@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Market;
+use App\Models\User;
 
 class MarketController extends Controller
 {
-    
+
     public function store(Request $request)
 {
     // التحقق من المصادقة
@@ -23,27 +24,51 @@ class MarketController extends Controller
 
         // التحقق من البيانات بناءً على دور المستخدم
         $userId = $user->id;
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|unique:markets|string|max:15',
+            'address' => 'required|string|max:255',
+            'system_market_number' => 'required|string|unique:markets,system_market_number',
+        ]);
+
+        
+
+
         if ($user->role === 'admin') {
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'phone' => 'nullable|string|max:15',
-                'address' => 'required|string|max:255',
-                'system_market_number' => 'required|string|unique:markets,system_market_number',
-                'user_id' => 'required|exists:users,id',
-            ]);
+            // التحقق من القسم والفرع في حالة الادمن
+            // $validated['department_id'] = $request->input('department_id'); 
+            // $validated['branch_id'] = $request->input('branch_id'); 
+            $validated['user_id'] = $request->input('user_id'); 
+            $selectedUserId = $validated['user_id'];
+            $selectedUser = User::find($selectedUserId);
+
+            if (!$selectedUser) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'User not found',
+                ], 404);
+            }
+
+                $department = $selectedUser->department; 
+                $branch = $selectedUser->branch; 
+
+                if (!$department || !$branch) {
+                    return response()->json([
+                        'error' => true,
+                        'message' => 'Department or branch not assigned to this user',
+                    ], 400);
+                }
+
+                $validated['department_id'] = $department->id; 
+                $validated['branch_id'] = $branch->id; 
+                // $validated['user_id'] = $selectedUserId; 
         }
 
-
-        // إذا كان المستخدم "user"، يتم تعيين user_id إلى معرف المستخدم المصادق عليه
+       
         if ($user->role === 'user') {
-            $validated = $request->validate([
-                'name' => 'required|string|max:255',
-                'phone' => 'nullable|string|max:15',
-                'address' => 'required|string|max:255',
-                'system_market_number' => 'required|string|unique:markets,system_market_number',
-            ]);
+            $validated['department_id'] = $user->department_id;
+            $validated['branch_id'] = $user->branch_id;
             $validated['user_id'] = $userId;
-
         }
 
         // تعيين الحالة الافتراضية
@@ -74,136 +99,76 @@ class MarketController extends Controller
     }
 }
 
-    // // إضافة سوق جديد
-    // public function store(Request $request)
-    // {
-    //     // التحقق من المصادقة
-    //     if (!auth()->check()) {
-    //         return response()->json([
-    //             'error' => true,
-    //             'message' => 'You Are Not Authenticated',
-    //         ], 401);
-    //     }
+    
+//     public function store(Request $request)
+// {
+//     // التحقق من المصادقة
+//     if (!auth()->check()) {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'You Are Not Authenticated',
+//         ], 401);
+//     }
 
-    //     try {
-    //         // التحقق من البيانات
-    //         $validated = $request->validate([
-    //             'name' => 'required|string|max:255',
-    //             'phone' => 'nullable|string|max:15',
-    //             'address' => 'required|string|max:255',
-    //             'system_market_number' => 'required|string|unique:markets,system_market_number',
-    //         ]);
+//     try {
+//         $user = auth()->user();
 
-    //         // إضافة user_id للمستخدم المصادق عليه
-    //         $validated['user_id'] = auth()->id();
-    //         $validated['status'] = 'active'; // تعيين القيمة الافتراضية
+//         // التحقق من البيانات بناءً على دور المستخدم
+//         $userId = $user->id;
+//         if ($user->role === 'admin') {
+//             $validated = $request->validate([
+//                 'name' => 'required|string|max:255',
+//                 'phone' => 'nullable|string|max:15',
+//                 'address' => 'required|string|max:255',
+//                 'system_market_number' => 'required|string|unique:markets,system_market_number',
+//                 'user_id' => 'required|exists:users,id',
+//             ]);
+//         }
 
-    //         // إنشاء السوق
-    //         $market = Market::create($validated);
 
-    //         return response()->json([
-    //             'error' => false,
-    //             'message' => 'Market created successfully',
-    //             'market' => $market,
-    //         ], 200);
-    //     } catch (\Illuminate\Validation\ValidationException $e) {
-    //         // الرد إذا فشل التحقق من البيانات
-    //         return response()->json([
-    //             'error' => true,
-    //             'message' => 'Validation failed',
-    //             'errors' => $e->errors(),
-    //         ], 400);
-    //     } catch (\Exception $e) {
-    //         // الرد إذا حدث خطأ آخر
-    //         return response()->json([
-    //             'error' => true,
-    //             'message' => 'Failed to create market',
-    //             'details' => $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
+//         // إذا كان المستخدم "user"، يتم تعيين user_id إلى معرف المستخدم المصادق عليه
+//         if ($user->role === 'user') {
+//             $validated = $request->validate([
+//                 'name' => 'required|string|max:255',
+//                 'phone' => 'nullable|string|max:15',
+//                 'address' => 'required|string|max:255',
+//                 'system_market_number' => 'required|string|unique:markets,system_market_number',
+//             ]);
+//             $validated['user_id'] = $userId;
+//             $validated['branch_id'] = $user->branch_id;
+//             $validated['department_id'] = $user->department_id;
 
-        
+//         }
 
-    // عرض الأسواقW
-    // public function index()
-    // {
+//         // تعيين الحالة الافتراضية
+//         $validated['status'] = 'active';
 
-    //     if (!auth()->check()) {
-    //         return response()->json([
-    //             'error' => true,
-    //             'message' => 'You Are Not Authenticated',
-    //         ], 401);
-    //     }
-        
-        
-    //     $markets = Market::where('status', '!=', 'deleted')->with('user')->get();
+//         // إنشاء السوق
+//         $market = Market::create($validated);
 
-    //     return response()->json($markets, 200);
-    // }
-    // public function index(Request $request)
-    // {
-    //     if (!auth()->check()) {
-    //         return response()->json([
-    //             'error' => true,
-    //             'message' => 'You Are Not Authenticated',
-    //         ], 401);
-    //     }
-    
-    //     // الحصول على استعلام البحث إذا وُجد
-    //     $query = $request->query('search');
-    
-    //     // استعلام الأسواق
-    //     $markets = Market::query();
-    
-    //     // تطبيق الفلاتر إذا وُجد استعلام بحث
-    //     if ($query) {
-    //         $markets = $markets->where('name', 'LIKE', "%$query%")
-    //             ->orWhere('phone', 'LIKE', "%$query%")
-    //             ->orWhere('system_market_number', 'LIKE', "%$query%");
-    //     }
-    
-    //     // تنفيذ الاستعلام وجلب النتائج
-    //     $markets = $markets->get();
-    
-    //     if ($markets->isEmpty()) {
-    //         return response()->json([
-    //             'message' => $query ? 'No markets found for the given query' : 'No markets available',
-    //         ], 404);
-    //     }
-    
-    //     return response()->json([
-    //         'message' => $query ? 'Markets retrieved successfully for the given query' : 'Markets retrieved successfully',
-    //         'markets' => $markets,
-    //     ], 200);
-    // }
-    
-    // public function userMarkets(Request $request)
-    // {
-    //     if (!auth()->check()) {
-    //         return response()->json([
-    //             'error' => true,
-    //             'message' => 'You Are Not Authenticated',
-    //         ], 401);
-    //     }
-    
-    //     // الحصول على المستخدم الحالي
-    //     $userId = auth()->id();
-    
-    //     // جلب الأسواق المرتبطة بالمستخدم الحالي فقط
-    //     $markets = Market::where('user_id', $userId)->get();
-    
-    //     if ($markets->isEmpty()) {
-    //         return response()->json([
-    //             'message' => 'No markets associated with the current user',
-    //         ], 404);
-    //     }
-    
-    //     return response()->json([
-    //         'message' => 'User markets retrieved successfully',
-    //         'markets' => $markets,
-    //     ], 200);
-    // }
+//         return response()->json([
+//             'error' => false,
+//             'message' => 'Market created successfully',
+//             'market' => $market,
+//         ], 200);
+//     } catch (\Illuminate\Validation\ValidationException $e) {
+//         // الرد إذا فشل التحقق من البيانات
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'Validation failed',
+//             'errors' => $e->errors(),
+//         ], 400);
+//     } catch (\Exception $e) {
+//         // الرد إذا حدث خطأ آخر
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'Failed to create market',
+//             'details' => $e->getMessage(),
+//         ], 500);
+//     }
+// }
+
+
     
     public function getMarkets(Request $request)
     {
@@ -218,11 +183,11 @@ class MarketController extends Controller
     
         if ($user->role === 'admin') {
             // عرض جميع الأسواق إذا كان المستخدم Admin
-            $markets = Market::with(['user:id,name'])->get();
+            $markets = Market::with(['user:id,name','branch:id,name','department:id,name'])->get();
         } elseif ($user->role === 'user') {
             // عرض الأسواق المرتبطة بالمستخدم الحالي
             // $markets = $user->markets()->with('user')->get();
-            $markets = $user->markets()->with(['user:id,name'])->get();
+            $markets = $user->markets()->with(['user:id,name','branch:name','department:id,name'])->get();
 
         } else {
             return response()->json([

@@ -7,6 +7,8 @@ use App\Http\Controllers\MarketController;
 use App\Http\Controllers\BankController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\AreaController;
+use App\Http\Controllers\BranchController;
+use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\UserController;
 /*
@@ -32,7 +34,10 @@ use App\Http\Controllers\UserController;
 
 Route::prefix('mobile')->group(function () {
 
+    Route::get('/zones', [ZoneController::class, 'index']);
     Route::get('/areas', [AreaController::class, 'allAreas']);
+    Route::get('/departments', [DepartmentController::class, 'index']);
+    Route::get('/branches', [BranchController::class, 'index']);
 
     // Auth Section
     Route::prefix('auth')->group(function () {
@@ -78,7 +83,6 @@ Route::prefix('mobile')->group(function () {
     // Route::post('/markets', [MarketController::class, 'store'])->middleware('permission:can_edit');
 
 
-        Route::get('/zones', [ZoneController::class, 'index']);
         Route::post('/zones', [ZoneController::class, 'store']);
    
 
@@ -91,6 +95,21 @@ Route::prefix('mobile')->group(function () {
         // إنشاء منطقة جديدة
         Route::post('/areas', [AreaController::class, 'store']);
     
+
+        // الاقسام
+
+        // Route::get('/departments', [DepartmentController::class, 'index']);
+        Route::post('/departments', [DepartmentController::class, 'store']);
+        Route::put('/departments/{id}', [DepartmentController::class, 'update']);
+        Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
+
+        // الفروع
+
+        // Route::get('/branches', [BranchController::class, 'index']);
+        Route::post('/branches', [BranchController::class, 'store']);
+        Route::put('/branches/{id}', [BranchController::class, 'update']);
+        Route::delete('/branches/{id}', [BranchController::class, 'destroy']);
+
     Route::get('/user/permissions', function () {
         return response()->json([
             'permissions' => auth()->user()->permissions->pluck('name'),

@@ -18,11 +18,12 @@ class UserSeeder extends Seeder
     {
         // إنشاء مستخدم
         $user = User::updateOrCreate(
-            ['email' => 'admin@example.com'], // التعريف الفريد للمستخدم
+            ['email' => 'admin@gmail.com'], // التعريف الفريد للمستخدم
             [
                 'name' => 'Admin User',
-                'email' => 'admin@example.com',
-                'password' => bcrypt('password'), // كلمة المرور
+                'email' => 'admin@gmail.com',
+                'role' => 'admin',
+                'password' => bcrypt('Admin321'), // كلمة المرور
             ]
         );
 

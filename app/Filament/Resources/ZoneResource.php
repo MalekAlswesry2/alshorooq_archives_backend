@@ -6,12 +6,9 @@ use App\Filament\Resources\ZoneResource\Pages;
 use App\Filament\Resources\ZoneResource\RelationManagers;
 use App\Models\Zone;
 use Filament\Forms;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -21,14 +18,18 @@ class ZoneResource extends Resource
     protected static ?string $model = Zone::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-map';
+    protected static ?string $navigationGroup = "Location";
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('name'),
-                TextInput::make('code'),
-
+                Forms\Components\TextInput::make('name')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('code')
+                    ->required()
+                    ->maxLength(255),
             ]);
     }
 
@@ -36,9 +37,11 @@ class ZoneResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id'),
-                TextColumn::make('name'),
-                TextColumn::make('code'),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('code')
+                    ->searchable(),
+
             ])
             ->filters([
                 //

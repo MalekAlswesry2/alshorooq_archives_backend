@@ -7,8 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
+// class User extends Authenticatable 
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -20,7 +23,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'phone',
-        'department',
+        'department_id',
+        'branch_id',
         'address',
         'email',
         'status',
@@ -51,6 +55,16 @@ class User extends Authenticatable
 
     ];
 
+        public function department()
+        {
+            return $this->belongsTo(Department::class);
+        }
+    
+        public function branch()
+        {
+            return $this->belongsTo(Branch::class);
+        }
+
     public function permissions()
     {
         return $this->belongsToMany(Permission::class, 'user_permissions');
@@ -69,6 +83,13 @@ class User extends Authenticatable
 public function receipts()
 {
     return $this->hasMany(Receipt::class, 'user_id');
+}
+
+
+public function canAccessPanel(Panel $panel): bool
+{
+    // return str_ends_with($this->email, '@gmail.com') && $this->hasVerifiedEmail();
+    return str_ends_with($this->email, '@gmail.com');
 }
 
 }

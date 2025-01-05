@@ -13,6 +13,16 @@ class Bank extends Model
         'name',
         'account_number',
         'branch',
-        'status', // حالة المصرف
+        'branch_id',
+        'status', 
     ];
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+    public function branch()
+{
+    return $this->belongsTo(Branch::class);
+}
 }
