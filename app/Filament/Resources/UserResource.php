@@ -10,6 +10,8 @@ use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables;
@@ -17,6 +19,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Infolists\Infolist;
 
 class UserResource extends Resource
 {
@@ -25,7 +28,7 @@ class UserResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?int $navigationSort = 1;
     protected static ?string $recordTitleAttribute = 'Users';
-    protected static ?string $modelLabel = 'Admin';
+    protected static ?string $modelLabel = 'User';
 
     public static function form(Form $form): Form
     {
@@ -76,6 +79,9 @@ class UserResource extends Resource
             ]);
     }
 
+
+
+
     public static function table(Table $table): Table
     {
         return $table
@@ -121,11 +127,36 @@ class UserResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make('User info')
+                ->schema([
+                    TextEntry::make('name'),
+                    TextEntry::make('phone'),
+                    TextEntry::make('branch.name'),
+                    TextEntry::make('department.name'),
+                    TextEntry::make('address'),
+                    TextEntry::make('status'),
+                    TextEntry::make('role')
+                ])->columns(3),
+                Section::make('User type')
+                ->schema([
+
+                    TextEntry::make('branch.name'),
+                    TextEntry::make('department.name'),
+
+                    TextEntry::make('role')
+                ])->columns(2)
+
+            ]);
+    }
     public static function getRelations(): array
     {
         return [

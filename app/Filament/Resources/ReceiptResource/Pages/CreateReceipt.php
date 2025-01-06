@@ -9,4 +9,6 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateReceipt extends CreateRecord
 {
     protected static string $resource = ReceiptResource::class;
+
 }
+

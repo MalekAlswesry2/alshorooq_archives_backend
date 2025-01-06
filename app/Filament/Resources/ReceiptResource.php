@@ -8,6 +8,9 @@ use App\Models\Receipt;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
@@ -17,6 +20,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Infolists\Infolist;
 
 class ReceiptResource extends Resource
 {
@@ -32,7 +36,27 @@ class ReceiptResource extends Resource
                 //
             ]);
     }
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make('User info')
+                ->schema([
+                    TextEntry::make('custom_id'),
+                    TextEntry::make('user.name'),
+                    TextEntry::make('amount')->money('LYD'),
+                    TextEntry::make('reference_number'),
+                    TextEntry::make('bank.name'),
+                    TextEntry::make('payment_method'),
+                    TextEntry::make('check_number')
+                ])->columns(3),
+                Section::make('Recipt image')
+                ->schema([
+                    ImageEntry::make('image'),
+                ])->columns(2)
 
+            ]);
+    }
     public static function table(Table $table): Table
     {
         return $table

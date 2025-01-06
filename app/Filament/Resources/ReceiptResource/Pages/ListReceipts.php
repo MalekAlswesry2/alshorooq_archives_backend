@@ -24,6 +24,12 @@ class ListReceipts extends ListRecords
         return [
             // 'all' => Tab::make()
             // ->modifyQueryUsing(fn (Builder $query) => $query->where()),
+
+            'not_received' => Tab::make()
+            ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'not_received'))
+            // ->badge(fn () => Receipt::where('status', 'not_received')->count())
+            ,
+            
             'received' => Tab::make()
             
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'received'))
@@ -31,10 +37,7 @@ class ListReceipts extends ListRecords
                 
                 ,
                 
-            'not_received' => Tab::make()
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'not_received'))
-                // ->badge(fn () => Receipt::where('status', 'not_received')->count())
-                ,
+
 
         ];
     }
