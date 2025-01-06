@@ -63,7 +63,7 @@ class UserController extends Controller
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
             'phone' => $validatedData['phone'],
-            'department' => $validatedData['department'],
+            // 'department' => $validatedData['department'],
             'password' => Hash::make('12345678'), // كلمة مرور افتراضية يمكن تغييرها لاحقًا
             'role' => 'admin', // الدور يحدد كـ admin تلقائيًا
         ]);
