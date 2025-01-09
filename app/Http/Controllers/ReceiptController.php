@@ -9,6 +9,8 @@ use App\Models\Log;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class ReceiptController extends Controller
 {
@@ -151,6 +153,8 @@ class ReceiptController extends Controller
 //         'receipts' => $receipts,
 //     ], 200);
 // }
+
+
 public function getReceipts(Request $request)
 {
     if (!auth()->check()) {
@@ -612,6 +616,31 @@ public function updateStatus(Request $request)
     //         'receipt' => $receipt,
     //     ], 200);
     // }
+
+
+
+public function printReceiptAsPDF($receiptId)
+{
+    $receipt = Receipt::with(['user', 'market', 'bank', 'admin', 'department', 'branch'])->find($receiptId);
+
+    if (!$receipt) {
+        return response()->json([
+            'error' => true,
+            'message' => 'Receipt not found',
+        ], 404);
+    }
+
+    // $pdf = Dompdf::loadView('receipt',);
+
+    // return $pdf->download('receipt_' . $receipt->custom_id . '.pdf');
+
+
+    // $pdf = Pdf::loadView('receipt',  ['receipt' => $receipt])->setOption(['dpi' => 150, 'defaultFont' => 'Arial']);
+
+    // $pdf = Pdf::loadView('receipt',  ['receipt' => $receipt]);
+
+    // return $pdf->stream('invoice.pdf');
+}
 
     
 }

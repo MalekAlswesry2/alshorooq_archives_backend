@@ -110,6 +110,9 @@ Route::prefix('mobile')->group(function () {
         Route::put('/branches/{id}', [BranchController::class, 'update']);
         Route::delete('/branches/{id}', [BranchController::class, 'destroy']);
 
+        
+        Route::get('/receipts/{id}/pdfs', [ReceiptController::class, 'printReceiptAsPDF']);
+
     Route::get('/user/permissions', function () {
         return response()->json([
             'permissions' => auth()->user()->permissions->pluck('name'),
