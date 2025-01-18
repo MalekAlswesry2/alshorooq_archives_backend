@@ -55,6 +55,10 @@ class User extends Authenticatable implements FilamentUser
 
     ];
 
+    public function zone()
+    {
+        return $this->belongsTo(Zone::class);
+    }
         public function department()
         {
             return $this->belongsTo(Department::class);

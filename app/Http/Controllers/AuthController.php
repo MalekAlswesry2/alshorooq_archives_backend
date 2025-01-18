@@ -82,7 +82,7 @@ public function profile()
     }
 
     $user = auth()->user(); // الحصول على المستخدم المصادق عليه
-    $user->load('department:id,name','branch:id,name');
+    $user->load('department:id,name','branch:id,name','zone:id,name');
 
     $user['balance'] = (double)$user->balance;
 

@@ -211,8 +211,6 @@ public function getReceipts(Request $request)
         'receipts' => $receipts,
     ], 200);
 }
-
-
 public function store(Request $request)
 {
     if (!auth()->check()) {
@@ -241,13 +239,9 @@ public function store(Request $request)
             'check_number' => 'nullable|string|required_if:payment_method,transfer',
             'bank_id' => 'nullable|exists:banks,id|required_if:payment_method,transfer',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:8096',
-            // 'department_id' => 'required|exists:departments,id',
-            // 'branch_id' => 'required|exists:branches,id',
         ]);
 
-
-
-        $validated['user_id'] = $request->input('user_id'); 
+        $validated['user_id'] = $request->input('user_id');
         $selectedUserId = $validated['user_id'];
         $selectedUser = User::find($selectedUserId);
 
@@ -258,9 +252,8 @@ public function store(Request $request)
             ], 404);
         }
 
-        
-        $department = $selectedUser->department; 
-        $branch = $selectedUser->branch; 
+        $department = $selectedUser->department;
+        $branch = $selectedUser->branch;
 
         if (!$department || !$branch) {
             return response()->json([
@@ -268,11 +261,8 @@ public function store(Request $request)
                 'message' => 'Department or branch not assigned to this user',
             ], 400);
         }
-        $validated['department_id'] = $department->id; 
-        $validated['branch_id'] = $branch->id; 
-
-
-        // $userId = $validated['user_id'];
+        $validated['department_id'] = $department->id;
+        $validated['branch_id'] = $branch->id;
     } elseif ($user->role === 'user') {
         $validated = $request->validate([
             'market_id' => 'required|exists:markets,id',
@@ -290,13 +280,15 @@ public function store(Request $request)
 
         $userId = $user->id;
         $validated['user_id'] = $userId;
-
     } else {
         return response()->json([
             'error' => true,
             'message' => 'Invalid user role',
         ], 403);
     }
+
+    // إضافة حقل role في الإيصال
+    $validated['role'] = $user->role;  // إضافة الدور (role) للمستخدم
 
     // جلب بيانات السوق للتحقق من وجوده والحصول على client_number
     $market = Market::find($validated['market_id']);
@@ -322,10 +314,9 @@ public function store(Request $request)
         $imagePath = $request->file('image')->store('receipts', 'public');
     }
 
-    //  custom_id
+    // custom_id
     $lastReceipt = Receipt::orderBy('id', 'desc')->first();
     $newCustomId = $lastReceipt ? str_pad($lastReceipt->id + 1, 6, '0', STR_PAD_LEFT) : '000001';
-
 
     $validated['custom_id'] = $newCustomId;
     $validated['client_number'] = $clientNumber;
@@ -333,9 +324,7 @@ public function store(Request $request)
     $validated['image'] = $imagePath;
 
     // إنشاء الإيصال
-    $receipt = Receipt::create(
-        $validated
-    );
+    $receipt = Receipt::create($validated);
 
     $newBalance = $user->balance;
     $user->increment('balance', $validated['amount']);
@@ -354,13 +343,164 @@ public function store(Request $request)
         "تم إضافة إيصال جديد بواسطة {$user->name}",
         $user->id
     );
+    
     return response()->json([
         'message' => 'Receipt created successfully',
         'receipt' => $receipt,
     ], 200);
-
-
 }
+
+
+// public function store(Request $request)
+// {
+//     if (!auth()->check()) {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'You Are Not Authenticated',
+//         ], 401);
+//     }
+
+//     $user = auth()->user();
+
+//     if (!$user->role) {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'User role is not defined. Please check the role field.',
+//         ], 500);
+//     }
+
+//     if ($user->role === 'admin') {
+//         $validated = $request->validate([
+//             'user_id' => 'required|exists:users,id',
+//             'market_id' => 'required|exists:markets,id',
+//             'reference_number' => 'required|string|unique:receipts,reference_number|max:50',
+//             'amount' => 'required|numeric|min:0',
+//             'payment_method' => 'required|in:cash,transfer,check',
+//             'check_number' => 'nullable|string|required_if:payment_method,transfer',
+//             'bank_id' => 'nullable|exists:banks,id|required_if:payment_method,transfer',
+//             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:8096',
+//             // 'department_id' => 'required|exists:departments,id',
+//             // 'branch_id' => 'required|exists:branches,id',
+//         ]);
+
+
+
+//         $validated['user_id'] = $request->input('user_id'); 
+//         $selectedUserId = $validated['user_id'];
+//         $selectedUser = User::find($selectedUserId);
+
+//         if (!$selectedUser) {
+//             return response()->json([
+//                 'error' => true,
+//                 'message' => 'User not found',
+//             ], 404);
+//         }
+
+        
+//         $department = $selectedUser->department; 
+//         $branch = $selectedUser->branch; 
+//         $validated['role'] = $user->role;
+
+//         if (!$department || !$branch) {
+//             return response()->json([
+//                 'error' => true,
+//                 'message' => 'Department or branch not assigned to this user',
+//             ], 400);
+//         }
+//         $validated['department_id'] = $department->id; 
+//         $validated['branch_id'] = $branch->id; 
+
+
+//         // $userId = $validated['user_id'];
+//     } elseif ($user->role === 'user') {
+//         $validated = $request->validate([
+//             'market_id' => 'required|exists:markets,id',
+//             'reference_number' => 'required|string|unique:receipts,reference_number|max:50',
+//             'amount' => 'required|numeric|min:0',
+//             'payment_method' => 'required|in:cash,transfer,check',
+//             'check_number' => 'nullable|string|required_if:payment_method,transfer',
+//             'bank_id' => 'nullable|exists:banks,id|required_if:payment_method,transfer',
+//             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:8096',
+//         ]);
+
+//         // استخدام قسم وفرع المستخدم الحالي
+//         $validated['department_id'] = $user->department_id;
+//         $validated['branch_id'] = $user->branch_id;
+
+//         $userId = $user->id;
+//         $validated['user_id'] = $userId;
+//         $validated['role'] = $user->role;
+
+//     } else {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'Invalid user role',
+//         ], 403);
+//     }
+
+//     // جلب بيانات السوق للتحقق من وجوده والحصول على client_number
+//     $market = Market::find($validated['market_id']);
+//     if (!$market) {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'Market not found',
+//         ], 404);
+//     }
+
+//     if (empty($market->system_market_number)) {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'Market does not have a client number.',
+//         ], 400);
+//     }
+
+//     $clientNumber = $market->system_market_number;
+
+//     // التعامل مع رفع الصورة
+//     $imagePath = null;
+//     if ($request->hasFile('image')) {
+//         $imagePath = $request->file('image')->store('receipts', 'public');
+//     }
+
+//     //  custom_id
+//     $lastReceipt = Receipt::orderBy('id', 'desc')->first();
+//     $newCustomId = $lastReceipt ? str_pad($lastReceipt->id + 1, 6, '0', STR_PAD_LEFT) : '000001';
+
+
+//     $validated['custom_id'] = $newCustomId;
+//     $validated['client_number'] = $clientNumber;
+//     $validated['custom_id'] = $newCustomId;
+//     $validated['image'] = $imagePath;
+
+//     // إنشاء الإيصال
+//     $receipt = Receipt::create(
+//         $validated
+//     );
+
+//     $newBalance = $user->balance;
+//     $user->increment('balance', $validated['amount']);
+
+//     // تسجيل الحركة المالية
+//     UserTransaction::create([
+//         'user_id' => $user->id,
+//         'receipt_id' => $receipt->id,
+//         'type' => 'not_received',
+//         'amount' => $validated['amount'],
+//         'balance_after' => $newBalance,
+//     ]);
+
+//     Log::addLog(
+//         'إضافة إيصال',
+//         "تم إضافة إيصال جديد بواسطة {$user->name}",
+//         $user->id
+//     );
+//     return response()->json([
+//         'message' => 'Receipt created successfully',
+//         'receipt' => $receipt,
+//     ], 200);
+
+
+// }
 
 
 

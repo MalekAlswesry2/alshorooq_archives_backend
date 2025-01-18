@@ -152,17 +152,32 @@ class ReceiptResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 // Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('pdf') 
-                    ->label('PDF')
-                    ->color('success')
-                    ->icon('heroicon-o-newspaper')
-                    ->action(function (Receipt $receipt) {
-                        return response()->streamDownload(function () use ($receipt) {
-                            echo Pdf::loadHtml(
-                                Blade::render('receipt', ['receipt' => $receipt])
-                            )->stream();
-                        }, $receipt->custom_id . '.pdf');
-                    }), 
+                // Tables\Actions\Action::make('pdf') 
+                //     ->label('PDF')
+                //     ->color('success')
+                //     ->icon('heroicon-o-newspaper')
+                //     ->action(function (Receipt $receipt) {
+                //         return response()->streamDownload(function () use ($receipt) {
+                //             echo Pdf::loadHtml(
+                //                 Blade::render('receipt', ['receipt' => $receipt])
+                //             )->stream();
+                //         }, $receipt->custom_id . '.pdf');
+                //     }), 
+
+                Tables\Actions\Action::make('pdf')
+                ->label('PDF')
+                ->color('success')
+                ->icon('heroicon-o-newspaper')
+                ->action(function (Receipt $receipt) {
+                    return response()->stream(function () use ($receipt) {
+                        echo Pdf::loadHtml(
+                            Blade::render('receipt', ['receipt' => $receipt])
+                        )->stream();
+                    }, 200, [
+                        'Content-Type' => 'application/pdf',
+                        'Content-Disposition' => 'inline; filename="' . $receipt->custom_id . '.pdf"',
+                    ]);
+                }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
