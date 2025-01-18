@@ -21,6 +21,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Infolists\Infolist;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Blade;
+use niklasravnsborg\LaravelPdf\Facades\Pdf;
 
 class ReceiptResource extends Resource
 {
@@ -28,7 +31,9 @@ class ReceiptResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-newspaper';
     protected static ?int $navigationSort = 2;
-
+    protected static ?string $label = "ايصال";
+    protected static ?string $navigationLabel = "الايصالات";
+    protected static ?string $modelLabel = "ايصال";
     public static function form(Form $form): Form
     {
         return $form
@@ -40,19 +45,30 @@ class ReceiptResource extends Resource
     {
         return $infolist
             ->schema([
-                Section::make('User info')
+                Section::make('بيانات الايصال')
                 ->schema([
-                    TextEntry::make('custom_id'),
-                    TextEntry::make('user.name'),
-                    TextEntry::make('amount')->money('LYD'),
-                    TextEntry::make('reference_number'),
-                    TextEntry::make('bank.name'),
-                    TextEntry::make('payment_method'),
+                    TextEntry::make('custom_id')->label("رقم الايصال"),
+                    TextEntry::make('user.name')
+                    ->label("المستخدم"),
+                    TextEntry::make('amount')->money('LYD')
+                    ->label("القيمة"),
+                    TextEntry::make('reference_number')
+                    ->label("الرقم الاشاري"),
+                    TextEntry::make('bank.name')
+                    ->label("المصرف"),
+
+                    TextEntry::make('payment_method')
+                    ->label("طريقة الدفع"),
+
                     TextEntry::make('check_number')
+                    ->label("رقم الشيك"),
+
                 ])->columns(3),
-                Section::make('Recipt image')
+                Section::make('صورة الايصال')
                 ->schema([
-                    ImageEntry::make('image'),
+                    ImageEntry::make('image')
+                    ->label(""),
+                    
                 ])->columns(2)
 
             ]);
@@ -62,47 +78,64 @@ class ReceiptResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('custom_id')
-                ->label("ID"),
-                TextColumn::make('user.name'),
-
-                TextColumn::make('reference_number'),
-                TextColumn::make('amount')->money('LYD'),
-                TextColumn::make('bank.name'),
-                TextColumn::make('payment_method'),
-                TextColumn::make('check_number'),
-                TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state){
-                    'not_received' => 'warning',
-                    'received' => 'success',
-                }),
-                ImageColumn::make('image')->square()->visibility('private')
-                ->openUrlInNewTab(),
+                ->label("رقم الايصال")
+                ->sortable(),
+                TextColumn::make('user.name')
+                ->label("المستخدم")
+                ->sortable(),
+                TextColumn::make('reference_number')
+                ->label("الرقم الاشاري"),
+                TextColumn::make('amount')->money('LYD')
+                ->label("القيمة"),
+                TextColumn::make('bank.name')
+                ->label("المصرف"),
+                // TextColumn::make('payment_method')
+                // ->label("طريقة الدفع"),
+                // TextColumn::make('check_number')
+                // ->label("رقم الشيك"),
+                // TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state){
+                //     'not_received' => 'warning',
+                //     'received' => 'success',
+                // })->label("الحالة"),
+                // ImageColumn::make('image')->square()->visibility('private')
+                // ->openUrlInNewTab()
+                // ->label("الصورة")
                 // ImageColumn::make('image')->defaultImageUrl(url('/images/placeholder.png')),
 
 
             ])
             ->filters([
                 
-                SelectFilter::make('department')->relationship('department', 'name'),
-                SelectFilter::make('branch')->relationship('branch', 'name'),
+                SelectFilter::make('department')->relationship('department', 'name')
+                ->label("القسم"),
+            
+                SelectFilter::make('branch')->relationship('branch', 'name')
+                ->label("الفرع"),
+
+                SelectFilter::make('user')->relationship('user', 'name')
+                ->label("المستخدم"),
 
                 SelectFilter::make('status')
+                ->label("الحالة")
                 ->options(
                 [
-                    'received'=>'received',
-                    'not_received'=>'not received'
+                    'received'=>'مستلمة',
+                    'not_received'=>'غير مستلمة'
                 ]
                 )->attribute('status'),
                 SelectFilter::make('payment_method')
+                ->label("طريقة الدفع")
                 ->options(
                 [
-                    'transfer'=>'transfer',
-                    'cash'=>'cash'
+                    'transfer'=>'تحويل',
+                    'check'=>'شيك',
+                    'cash'=>'كاش'
                 ]
                 )->attribute('payment_method'),
                 Filter::make('created_at')
                 ->form([
-                    DatePicker::make('created_from'),
-                    DatePicker::make('created_until'),
+                    DatePicker::make('created_from')->label("التاريخ من"),
+                    DatePicker::make('created_until')->label("التاريخ الى"),
                 ])
                 ->query(function (Builder $query, array $data): Builder {
                     return $query
@@ -118,11 +151,22 @@ class ReceiptResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                // Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('pdf') 
+                    ->label('PDF')
+                    ->color('success')
+                    ->icon('heroicon-o-newspaper')
+                    ->action(function (Receipt $receipt) {
+                        return response()->streamDownload(function () use ($receipt) {
+                            echo Pdf::loadHtml(
+                                Blade::render('receipt', ['receipt' => $receipt])
+                            )->stream();
+                        }, $receipt->custom_id . '.pdf');
+                    }), 
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }

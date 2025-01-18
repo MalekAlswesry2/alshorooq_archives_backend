@@ -16,7 +16,7 @@ class AuthController extends Controller
             'phone' => 'required|string|unique:users,phone',
             'department_id' => 'required|exists:departments,id',
             'branch_id' => 'required|exists:branches,id',
-            'address' => 'required|string|max:255',
+            'zone_id' => 'required|exists:zones,id',
             // 'status' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:6|confirmed',
@@ -33,7 +33,7 @@ class AuthController extends Controller
             'phone' => $request->phone,
             'department_id' => $request->department_id,
             'branch_id' => $request->branch_id,
-            'address' => $request->address,
+            'zone_id' => $request->zone_id,
             'status' => 'active', // الحالة الافتراضية
             'email' => $request->email,
             'password' => Hash::make($request->password),

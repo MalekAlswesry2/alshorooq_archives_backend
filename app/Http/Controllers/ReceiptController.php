@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 
 class ReceiptController extends Controller
@@ -168,12 +169,12 @@ public function getReceipts(Request $request)
 
     if ($user->role === 'admin') {
         // عرض جميع الإيصالات إذا كان المستخدم Admin
-        $receipts = Receipt::with(['user', 'market', 'bank', 'admin', 'department:id,name', 'branch:id,name'])
+        $receipts = Receipt::with(['user:id,name', 'market', 'bank', 'admin', 'department:id,name', 'branch:id,name'])
             ->orderBy('created_at', 'desc')
             ->get();
     } elseif ($user->role === 'user') {
         // عرض الإيصالات المرتبطة بالمستخدم الحالي
-        $receipts = Receipt::with(['market', 'bank', 'admin', 'department:id,name', 'branch:id,name'])
+        $receipts = Receipt::with(['user:id,name','market', 'bank', 'department:id,name', 'branch:id,name'])
             ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
@@ -198,6 +199,9 @@ public function getReceipts(Request $request)
         }
 
         $receipt['amount'] = (double)$receipt->amount;
+    // تحويل الأوقات إلى توقيت ليبيا
+    $receipt['created_at'] = Carbon::parse($receipt['created_at'])->timezone('Africa/Tripoli')->toDateTimeString();
+    $receipt['updated_at'] = Carbon::parse($receipt['updated_at'])->timezone('Africa/Tripoli')->toDateTimeString();
 
         return $receipt;
     });

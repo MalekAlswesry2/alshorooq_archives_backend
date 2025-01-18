@@ -16,8 +16,8 @@ class Market extends Model
         'system_market_number',
         'status',  
         'branch_id',
-        'department_id'
-
+        'department_id',
+        'area_id'
     ];
 
     public function user()
@@ -31,5 +31,9 @@ class Market extends Model
     public function branch()
 {
     return $this->belongsTo(Branch::class);
+}
+public function area()
+{
+    return $this->belongsTo(Area::class);
 }
 }

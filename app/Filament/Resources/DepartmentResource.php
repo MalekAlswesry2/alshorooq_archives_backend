@@ -22,18 +22,20 @@ class DepartmentResource extends Resource
 {
     protected static ?string $model = Department::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?int $navigationSort = 6;
-
+    protected static ?string $label = "قسم";
+    protected static ?string $navigationLabel = "الاقسام";
+    protected static ?string $modelLabel = "قسم";
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('name')
+                TextInput::make('name')->label("اسم القسم")
                 ->required()
                 ->maxLength(255),
     
-            Select::make('status')
+            Select::make('status')->label("الحالة")
                 ->options([
                     'active' => 'Active',
                     'inactive' => 'Inactive',
@@ -47,8 +49,8 @@ class DepartmentResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')->sortable()->searchable(),
-                TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state){
+                TextColumn::make('name')->sortable()->searchable()->label("اسم القسم"),
+                TextColumn::make('status')->label("الحالة")->badge()->color(fn (string $state): string => match ($state){
                     'active' => 'Active',
                     'inactive' => 'Inactive',
                 })->colors([
@@ -59,7 +61,7 @@ class DepartmentResource extends Resource
                     
             ])
             ->filters([
-                SelectFilter::make('status')
+                SelectFilter::make('status')->label("الحالة")
                     ->options([
                         'active' => 'Active',
                         'inactive' => 'Inactive',

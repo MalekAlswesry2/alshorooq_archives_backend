@@ -18,17 +18,21 @@ class ZoneResource extends Resource
     protected static ?string $model = Zone::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-map';
-    protected static ?string $navigationGroup = "Location";
-
+    protected static ?string $navigationGroup = "المناطق وخطوط السير";
+    protected static ?string $label = "خط السير";
+    protected static ?string $navigationLabel = "خطوط السير";
+    protected static ?string $modelLabel = "خط السير";
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
+                    ->label("اسم خط السير")
                     ->maxLength(255),
                 Forms\Components\TextInput::make('code')
                     ->required()
+                    ->label("كود خط السير")
                     ->maxLength(255),
             ]);
     }
@@ -38,8 +42,10 @@ class ZoneResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
+                ->label("اسم خط السير")
                     ->searchable(),
                 Tables\Columns\TextColumn::make('code')
+                ->label("كود خط السير")
                     ->searchable(),
 
             ])

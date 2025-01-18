@@ -23,18 +23,21 @@ class AreaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
-    protected static ?string $navigationGroup = "Location";
-
+    protected static ?string $navigationGroup = "المناطق وخطوط السير";
+    protected static ?string $label = "منطقة";
+    protected static ?string $navigationLabel = "مناطق";
+    protected static ?string $modelLabel = "منطقة";
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
+                ->label("اسم المنطقة")
                 ->required()
                 ->maxLength(255),
                 Select::make('zone_id')
-                ->label('Area')
+                ->label('خط السير')
                 ->options(Zone::all()->pluck('name', 'id'))
                 ->searchable()
 
@@ -46,12 +49,16 @@ class AreaResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
+                ->label("اسم المنطقة")
                 ->searchable(),
-                TextColumn::make('zone.name'),
+                TextColumn::make('zone.name')
+                ->label("خط السير")
+            ,
 
             ])
             ->filters([
-                SelectFilter::make('zone_id')
+                SelectFilter::make('zone_id')->label("خط السير")
+
                 ->options(
                     Zone::all()->pluck('name', 'id')
                 )->attribute('zone_id')

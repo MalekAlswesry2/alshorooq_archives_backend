@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\BankResource\Pages;
 use App\Filament\Resources\BankResource\RelationManagers;
 use App\Models\Bank;
+use App\Models\Branch;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -21,18 +22,24 @@ class BankResource extends Resource
 {
     protected static ?string $model = Bank::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-building-library';
     protected static ?int $navigationSort = 4;
-
+    protected static ?string $label = "مصرف";
+    protected static ?string $navigationLabel = "المصارف";
+    protected static ?string $modelLabel = "مصرف";
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
 
-                TextInput::make('name'),
-                TextInput::make('account_number'),
-                TextInput::make('branch'),
-      
+                TextInput::make('name')->label("اسم المصرف"),
+                TextInput::make('account_number')->label("رقم الحساب"),
+                // TextInput::make('branch'),
+                Select::make('branch_id')
+                ->label('الفرع')
+                ->required()
+                ->options(Branch::all()->pluck('name', 'id'))
+                // ->searchable(),
                 ]);
     }
 
@@ -40,12 +47,12 @@ class BankResource extends Resource
     {
         return $table
         ->columns([
-            TextColumn::make('name'),
-            TextColumn::make('account_number'),
+            TextColumn::make('name')->label("اسم المصرف"),
+            TextColumn::make('account_number')->label("رقم الحساب"),
         ])
             ->filters([
-                SelectFilter::make('branch')->relationship('branch', 'name'),
-                SelectFilter::make('department')->relationship('department', 'name'),
+                SelectFilter::make('branch')->relationship('branch', 'name')->label("الفرع"),
+                SelectFilter::make('department')->relationship('department', 'name')->label("القسم"),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

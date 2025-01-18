@@ -63,4 +63,20 @@ class AreaController extends Controller
             'area' => $area,
         ], 200);
     }
+
+
+    public function getAreasDebOnZone(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->role === 'admin') {
+            // إذا كان المستخدم admin، احضر جميع المناطق
+            $areas = Area::all();
+        } else {
+            // إذا كان المستخدم user، احضر المناطق بناءً على zone_id للمستخدم
+            $areas = Area::where('zone_id', $user->zone_id)->get();
+        }
+
+        return response()->json($areas);
+    }
 }

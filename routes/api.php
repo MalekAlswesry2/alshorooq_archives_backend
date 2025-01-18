@@ -84,7 +84,8 @@ Route::prefix('mobile')->group(function () {
 
 
         Route::post('/zones', [ZoneController::class, 'store']);
-   
+        Route::get('/areas_on_zone', [AreaController::class, 'getAreasDebOnZone']);
+
 
         // Route::get('/areas', [AreaController::class, 'allAreas']);
 

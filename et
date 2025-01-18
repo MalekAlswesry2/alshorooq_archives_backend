@@ -1,0 +1,188 @@
+[33mcommit 066ae189298ba4116abe65564f8c2c0d9b0e6337[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sat Jan 18 15:26:40 2025 +0200
+
+    new route for areas, fix zone_id at user, filament arabic and staff,add logo to department
+
+[33mcommit 441a6d43c7c63aa1c31e97cf1c1886c1f7f68e13[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sat Jan 18 15:25:38 2025 +0200
+
+    new route for areas, fix zone_id at user, filament arabic and staff,add logo to department
+
+[33mcommit ded804cc5927bd7416726bcec4f000711acec17e[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sat Jan 18 15:24:38 2025 +0200
+
+    new route for areas, fix zone_id at user, filament arabic and staff,add logo to department
+
+[33mcommit dbdf12f848ba515395aace0e26790ce1edcf988b[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sat Jan 18 15:10:47 2025 +0200
+
+    new route for areas, fix zone_id at user, filament arabic and staff,add logo to department
+
+[33mcommit a4d0739f5ccadbffcc522e1ebdd909bb8480fdd9[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Thu Jan 9 20:44:00 2025 +0200
+
+    filament staff
+
+[33mcommit 255d62836d6ae1cd960ffe0f1328273796cb2b24[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Mon Jan 6 21:59:09 2025 +0200
+
+    filament dash
+
+[33mcommit d8c6d4c903d3500e5daeea2909782342f1375169[m
+Author: nosiba97 <nelgadafi@giga.ly>
+Date:   Mon Jan 6 16:55:53 2025 +0200
+
+    hot-fix: added (check) to payment methods, removed string validation from branch id in bank controller, commented department from user creation
+
+[33mcommit 29480b507a557cd571bbc1ceb8f9e31cf3208f1d[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Mon Jan 6 01:27:26 2025 +0200
+
+    fix profile res
+
+[33mcommit 08f2ef39e11aadce4ddd16b1f8e10917c56e81a0[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sun Jan 5 23:06:33 2025 +0200
+
+    fix receipts list
+
+[33mcommit 8ed534fed9e4e2f01ba5fd12974932d580efce77[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sun Jan 5 11:51:31 2025 +0200
+
+    fix login response
+
+[33mcommit fa4ab102ea58b208d1ba79520ea23c191242a492[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sun Jan 5 10:20:45 2025 +0200
+
+    departments, branches, logs, add Ids to tables ,and more
+
+[33mcommit b4782211b11d28d6064b00a50f7bf26166e27940[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sun Dec 29 23:25:51 2024 +0200
+
+    fix bugs
+
+[33mcommit 53f7192fc9e709ec44c1f47afd801c92173f2287[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sun Dec 29 00:31:49 2024 +0200
+
+    fix add market by admin
+
+[33mcommit a4b2f35987ed1bf89b34a9a68167700639b8c447[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sat Dec 28 22:35:42 2024 +0200
+
+    upgrade laravel 10,filament
+
+[33mcommit d3740a392160fd5c4e87c7afb30562a3cbbceb74[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sat Dec 28 21:29:19 2024 +0200
+
+    max image uploaded to 4m
+
+[33mcommit 8e6a0c05c43501effe83bdd3044ea1aca7ac8685[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sat Dec 28 21:06:06 2024 +0200
+
+    receipt new fields, scan barcode , add admins,
+
+[33mcommit c2973b9abbe2956a94da826947918ea3c6d5de84[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Thu Dec 26 18:17:09 2024 +0200
+
+    area no auth, new field in recipts
+
+[33mcommit 6e98df4b963b9db9154d2e822e5a0bcae04db744[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Wed Dec 25 15:14:36 2024 +0200
+
+    get all users route added
+
+[33mcommit 29e1650e37bffaef37246345003eed5f87c8e16b[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Wed Dec 25 14:08:16 2024 +0200
+
+    fix empty state
+
+[33mcommit 0846007bb0fee754c7f27c4631cbf1d91ea4c0e1[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sat Dec 21 23:45:00 2024 +0200
+
+    fix market res, dircet clint number, recipts order desc
+
+[33mcommit 88ee535b79ad2df3ce9deb1a34caab3e46f145e4[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Thu Dec 19 16:33:55 2024 +0200
+
+    balance
+
+[33mcommit b5ed96d9a2572ffa69440ba246e62caa71f2c8ea[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Wed Dec 18 21:54:12 2024 +0200
+
+    try fix image
+
+[33mcommit 889699d337af68a4b40ef26db3585b086b15c244[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sun Dec 15 04:05:10 2024 +0200
+
+    recipt and market in one request, zones and areas added
+
+[33mcommit 57b7017f8b5da3e79aa8947d4a09adfefc41d21a[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sat Dec 14 22:14:36 2024 +0200
+
+    current_recipts_list_added
+
+[33mcommit df74c1e6de1b6ddf939d018944ec3e5c7953b684[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sat Dec 14 22:03:18 2024 +0200
+
+    current_user_markets_added
+
+[33mcommit ae4eb159474f590af77112b1765e1a0c503f0d19[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sat Dec 14 21:44:15 2024 +0200
+
+    user profile added
+
+[33mcommit 51210e757dabe3bbc18fd9b862d43215f8653a09[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Thu Dec 12 20:10:47 2024 +0200
+
+    return object insstead of IDs, permmistion in progress
+
+[33mcommit 1d7bf53fcd936595cd1302c17aac3721e6517c94[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Tue Dec 10 14:31:27 2024 +0200
+
+    update
+
+[33mcommit edcefd5d20d080db01393eee66e8a49b61a16045[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Sun Dec 8 21:09:38 2024 +0200
+
+    update
+
+[33mcommit e87f287b34eb75d3680b32bec4a68491de830b0b[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Fri Dec 6 21:27:42 2024 +0200
+
+    Auth Done
+    
+    register new user,
+    log in
+
+[33mcommit ab1819d4be901168bdd89f513df728046e40e180[m
+Author: MalekAlswesry2 <malekalswesry@gmail.com>
+Date:   Fri Dec 6 19:07:47 2024 +0200
+
+    Initial commit

@@ -26,6 +26,7 @@ class MarketController extends Controller
         $userId = $user->id;
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            // 'area_id' => 'required|exists:areas,id',
             'phone' => 'required|unique:markets|string|max:15',
             'address' => 'required|string|max:255',
             'system_market_number' => 'required|string|unique:markets,system_market_number',

@@ -22,13 +22,20 @@ class BranchResource extends Resource
     protected static ?string $model = Branch::class;
     protected static ?int $navigationSort = 5;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
+    protected static ?string $label = "فرع";
+    protected static ?string $navigationLabel = "الفروع";
+    protected static ?string $modelLabel = "فرع";
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make('name')
+                ->label("اسم الفرع")
+                ->required()
+                ->maxLength(255),
+                TextInput::make('address')
+                ->label("العنوان")
                 ->required()
                 ->maxLength(255),
     
@@ -36,7 +43,7 @@ class BranchResource extends Resource
                 ->options([
                     'active' => 'Active',
                     'inactive' => 'Inactive',
-                ])
+                ])->label("")
                 ->default('active')
                 ->required(),
             ]);
@@ -46,8 +53,10 @@ class BranchResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')->sortable()->searchable(),
-                TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state){
+                TextColumn::make('name')->sortable()->searchable()->label("اسم الفرع")
+                ,
+                TextColumn::make('status')->label("الحالة")
+                ->badge()->color(fn (string $state): string => match ($state){
                     'active' => 'Active',
                     'inactive' => 'Inactive',
                 })->colors([

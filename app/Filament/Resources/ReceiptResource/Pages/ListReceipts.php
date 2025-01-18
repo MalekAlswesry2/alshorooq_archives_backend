@@ -15,7 +15,7 @@ class ListReceipts extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            // Actions\CreateAction::make(),
         ];
     }
 
@@ -25,12 +25,12 @@ class ListReceipts extends ListRecords
             // 'all' => Tab::make()
             // ->modifyQueryUsing(fn (Builder $query) => $query->where()),
 
-            'not_received' => Tab::make()
+            'غير مستلمة' => Tab::make()
             ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'not_received'))
             // ->badge(fn () => Receipt::where('status', 'not_received')->count())
             ,
             
-            'received' => Tab::make()
+            'المستلمة' => Tab::make()
             
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'received'))
                 // ->badge(fn () => Receipt::where('status', 'received')->count())

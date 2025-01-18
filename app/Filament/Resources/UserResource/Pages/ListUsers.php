@@ -26,14 +26,14 @@ class ListUsers extends ListRecords
         return [
             // 'all' => Tab::make()
             // ->modifyQueryUsing(fn (Builder $query) => $query->where()),
-            'admins' => Tab::make()
+            'المشرفين' => Tab::make()
             
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('role', 'admin'))
                 // ->badge(fn () => Receipt::where('status', 'received')->count())
                 
                 ,
                 
-            'users' => Tab::make()
+            'المستخدمين' => Tab::make()
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('role', 'user'))
                 // ->badge(fn () => Receipt::where('status', 'not_received')->count())
                 ,
@@ -41,13 +41,13 @@ class ListUsers extends ListRecords
         ];
     }
 
-    protected function getStats(): array
-    {
-        return [
-            Stat::make('Unique views', '192.1k'),
-            Stat::make('Bounce rate', '21%'),
-            Stat::make('Average time on page', '3:12'),
-        ];
-    }
+    // protected function getStats(): array
+    // {
+    //     return [
+    //         Stat::make('Unique views', '192.1k'),
+    //         Stat::make('Bounce rate', '21%'),
+    //         Stat::make('Average time on page', '3:12'),
+    //     ];
+    // }
     
 }
