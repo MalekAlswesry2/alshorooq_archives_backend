@@ -71,6 +71,7 @@
         <div class="header" style="display: flex; align-items: center; justify-content: space-between;">
             <img src="{{ asset('images/logo.png') }}" alt="Example Image" style="width: 100px; height: auto;">
 
+            <h1></h1>
             <h2>شركة العملاق - ليبيا</h2>
         </div>
         <div class="section">

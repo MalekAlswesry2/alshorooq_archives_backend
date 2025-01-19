@@ -24,7 +24,7 @@ class Receipt extends Model
         'department_id',
         'branch_id',
         'system_receipt_number',
-        
+        'role'       
         
         
         

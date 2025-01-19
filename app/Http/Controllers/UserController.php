@@ -22,7 +22,7 @@ class UserController extends Controller
         }
 
         // $users = User::where('role', 'user')->get(['id', 'name', 'email', 'phone', 'address', 'department']);
-        $users = User::all(['id', 'name', 'email', 'phone', 'address', 'department_id', 'branch_id', 'role']);
+        $users = User::all(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
 
         if ($users->isEmpty()) {
             return response()->json([

@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class AdminMiddleware
+class RedirectIfNotFilamentAdmin
 {
     /**
      * Handle an incoming request.
@@ -19,7 +19,5 @@ class AdminMiddleware
             return $next($request);
         }
         return redirect('/admin/login');
-
-        // return response()->json(['message' => 'Access denied'], 403);
     }
 }

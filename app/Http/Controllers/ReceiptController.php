@@ -240,7 +240,7 @@ public function store(Request $request)
             'bank_id' => 'nullable|exists:banks,id|required_if:payment_method,transfer',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:8096',
         ]);
-
+        $validated['role'] = $user->role;  
         $validated['user_id'] = $request->input('user_id');
         $selectedUserId = $validated['user_id'];
         $selectedUser = User::find($selectedUserId);
@@ -254,7 +254,7 @@ public function store(Request $request)
 
         $department = $selectedUser->department;
         $branch = $selectedUser->branch;
-
+        
         if (!$department || !$branch) {
             return response()->json([
                 'error' => true,
@@ -263,6 +263,8 @@ public function store(Request $request)
         }
         $validated['department_id'] = $department->id;
         $validated['branch_id'] = $branch->id;
+        $validated['role'] = $user->role;  
+
     } elseif ($user->role === 'user') {
         $validated = $request->validate([
             'market_id' => 'required|exists:markets,id',
@@ -277,7 +279,6 @@ public function store(Request $request)
         // استخدام قسم وفرع المستخدم الحالي
         $validated['department_id'] = $user->department_id;
         $validated['branch_id'] = $user->branch_id;
-
         $userId = $user->id;
         $validated['user_id'] = $userId;
     } else {
@@ -286,9 +287,6 @@ public function store(Request $request)
             'message' => 'Invalid user role',
         ], 403);
     }
-
-    // إضافة حقل role في الإيصال
-    $validated['role'] = $user->role;  // إضافة الدور (role) للمستخدم
 
     // جلب بيانات السوق للتحقق من وجوده والحصول على client_number
     $market = Market::find($validated['market_id']);
@@ -330,13 +328,13 @@ public function store(Request $request)
     $user->increment('balance', $validated['amount']);
 
     // تسجيل الحركة المالية
-    UserTransaction::create([
-        'user_id' => $user->id,
-        'receipt_id' => $receipt->id,
-        'type' => 'not_received',
-        'amount' => $validated['amount'],
-        'balance_after' => $newBalance,
-    ]);
+    // UserTransaction::create([
+    //     'user_id' => $user->id,
+    //     'receipt_id' => $receipt->id,
+    //     'type' => 'not_received',
+    //     'amount' => $validated['amount'],
+    //     'balance_after' => $newBalance,
+    // ]);
 
     Log::addLog(
         'إضافة إيصال',
