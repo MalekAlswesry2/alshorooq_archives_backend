@@ -169,12 +169,12 @@ public function getReceipts(Request $request)
 
     if ($user->role === 'admin') {
         // عرض جميع الإيصالات إذا كان المستخدم Admin
-        $receipts = Receipt::with(['user:id,name', 'market', 'bank', 'admin', 'department:id,name', 'branch:id,name'])
+        $receipts = Receipt::with(['user:id,name', 'market', 'bank', 'admin', 'department:id,name', 'branch:id,name','bank:id,name'])
             ->orderBy('created_at', 'desc')
             ->get();
     } elseif ($user->role === 'user') {
         // عرض الإيصالات المرتبطة بالمستخدم الحالي
-        $receipts = Receipt::with(['user:id,name','market', 'bank', 'department:id,name', 'branch:id,name'])
+        $receipts = Receipt::with(['user:id,name','market', 'bank', 'department:id,name', 'branch:id,name','bank:id,name'])
             ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
