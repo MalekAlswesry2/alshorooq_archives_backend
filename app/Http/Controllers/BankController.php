@@ -17,7 +17,9 @@ class BankController extends Controller
             ], 401);
         }
 
-        $banks = Bank::all();
+        $banks = Bank::with(['branch'])->get();
+        // $markets = $user->markets()->with(['user:id,name','branch:name','department:id,name'])->get();
+
         return response()->json([
             'banks' => $banks,
         ]);

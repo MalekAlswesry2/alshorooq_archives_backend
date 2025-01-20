@@ -21,6 +21,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Infolists\Infolist;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Blade;
 use niklasravnsborg\LaravelPdf\Facades\Pdf;
@@ -85,10 +86,11 @@ class ReceiptResource extends Resource
                 ->sortable(),
                 TextColumn::make('reference_number')
                 ->label("الرقم الاشاري"),
-                TextColumn::make('amount')->money('LYD')
-                ->label("القيمة"),
+                TextColumn::make('amount')
+                ->label("القيمة")->summarize(Sum::make()->label('Total')),
                 TextColumn::make('bank.name')
                 ->label("المصرف"),
+                
                 // TextColumn::make('payment_method')
                 // ->label("طريقة الدفع"),
                 // TextColumn::make('check_number')
