@@ -15,51 +15,7 @@ use Carbon\Carbon;
 
 class ReceiptController extends Controller
 {
-    // public function index(Request $request)
-    // {
-    //     $receipts = Receipt::query();
-    
-    //     // التحقق من وجود فلتر للحالة
-    //     if ($request->has('status')) {
-    //         $receipts->where('status', $request->status);
-    //     }
-    
-    //     // إحضار الإيصالات مع بيانات المستخدم، المصرف، والسوق
-    //     $receipts = $receipts->with(['user', 'bank', 'market'])->get();
-    
-    //     return response()->json([
-    //         'receipts' => $receipts,
-    //     ]);
-    // }
-    
-//     public function userReceipts(Request $request)
-// {
-//     if (!auth()->check()) {
-//         return response()->json([
-//             'error' => true,
-//             'message' => 'You Are Not Authenticated',
-//         ], 401);
-//     }
-
-//     // الحصول على المستخدم الحالي
-//     $userId = auth()->id();
-
-//     // استعلام الإيصالات مع البيانات المرتبطة
-//     $receipts = Receipt::where('user_id', $userId)
-//         ->with(['user', 'bank', 'market'])
-//         ->get();
-
-//     if ($receipts->isEmpty()) {
-//         return response()->json([
-//             'message' => 'No receipts associated with the current user',
-//         ], 404);
-//     }
-
-//     return response()->json([
-//         'message' => 'User receipts retrieved successfully',
-//         'receipts' => $receipts,
-//     ], 200);
-// }
+  
 // public function getReceipts(Request $request)
 // {
 //     if (!auth()->check()) {
@@ -73,53 +29,15 @@ class ReceiptController extends Controller
 
 //     if ($user->role === 'admin') {
 //         // عرض جميع الإيصالات إذا كان المستخدم Admin
-//         $receipts = Receipt::with(['user', 'market', 'bank'])->get();
+//         $receipts = Receipt::with(['user:id,name', 'market', 'bank', 'admin', 'department:id,name', 'branch:id,name','bank:id,name'])
+//             ->orderBy('created_at', 'desc')
+//             ->get();
 //     } elseif ($user->role === 'user') {
 //         // عرض الإيصالات المرتبطة بالمستخدم الحالي
-//         $receipts = $user->receipts()->with(['market', 'bank'])->get();
-//     } else {
-//         return response()->json([
-//             'error' => true,
-//             'message' => 'Invalid user role',
-//         ], 403);
-//     }
-
-//     if ($receipts->isEmpty()) {
-//         return response()->json([
-//             'message' => 'No receipts available',
-//         ], 404);
-//     }
-
-//     return response()->json([
-//         'message' => 'Receipts retrieved successfully',
-//         'receipts' => $receipts,
-//     ], 200);
-// }
-
-
-// public function getReceipts(Request $request)
-// {
-//     if (!auth()->check()) {
-//         return response()->json([
-//             'error' => true,
-//             'message' => 'You Are Not Authenticated',
-//         ], 401);
-//     }
-
-//     $user = auth()->user();
-
-//     if ($user->role === 'admin') {
-
-//         // عرض جميع الإيصالات إذا كان المستخدم Admin
-//         $receipts = Receipt::with(['user', 'market', 'bank','admin','department:id,name','branch:id,name'])
-//         ->orderBy('created_at','desc')
-//         ->get();
-        
-//     } elseif ($user->role === 'user') {
-//         // عرض الإيصالات المرتبطة بالمستخدم الحالي
-//         $receipts = $user->receipts->with(['market', 'bank','admin','department:id,name','branch:id,name'])
-//         ->orderBy('created_at', 'desc')  // ترتيب حسب التاريخ من الأحدث إلى الأقدم
-//         ->get();
+//         $receipts = Receipt::with(['user:id,name','market', 'bank', 'department:id,name', 'branch:id,name','bank:id,name'])
+//             ->where('user_id', $user->id)
+//             ->orderBy('created_at', 'desc')
+//             ->get();
 //     } else {
 //         return response()->json([
 //             'error' => true,
@@ -137,14 +55,13 @@ class ReceiptController extends Controller
 //     // تعديل الصورة في كل إيصال
 //     $receipts = $receipts->map(function ($receipt) {
 //         if ($receipt->image) {
-//             $receipt['image'] = asset('storage/' . $receipt->image); 
-//             // $receipt->image = storage_path(). $receipt->image; 
-//             // $receipt['image'] = Storage::disk('public')->get($receipt->image);
-//             // $receipt['image'] = Storage::url($receipt->image); 
-
+//             $receipt['image'] = asset('storage/' . $receipt->image);
 //         }
 
 //         $receipt['amount'] = (double)$receipt->amount;
+//     // تحويل الأوقات إلى توقيت ليبيا
+//     $receipt['created_at'] = Carbon::parse($receipt['created_at'])->timezone('Africa/Tripoli')->toDateTimeString();
+//     $receipt['updated_at'] = Carbon::parse($receipt['updated_at'])->timezone('Africa/Tripoli')->toDateTimeString();
 
 //         return $receipt;
 //     });
@@ -154,7 +71,6 @@ class ReceiptController extends Controller
 //         'receipts' => $receipts,
 //     ], 200);
 // }
-
 
 public function getReceipts(Request $request)
 {
@@ -167,23 +83,49 @@ public function getReceipts(Request $request)
 
     $user = auth()->user();
 
+    $query = Receipt::with(['user:id,name', 'market', 'bank', 'department:id,name', 'branch:id,name', 'bank:id,name']);
+
+   
+    if ($request->has('from') && $request->has('to')) {
+        $query->whereBetween('created_at', [$request->input('from'), $request->input('to')]);
+    }
+
+    if ($request->has('user')) {
+        $query->where('user_id', $request->input('user'));
+    }
+
+    if ($request->has('bank')) {
+        $query->where('bank_id', $request->input('bank'));
+    }
+
+    // if ($request->has('payment_methods')) {
+    //     $query->whereIn('payment_method', $request->input('payment_methods'));
+    // }
+
+    if ($request->has('payment_methods')) {
+        $query->where('payment_method', $request->input('payment_methods'));
+    }
+
+    if ($request->has('status')) {
+        $query->where('status', $request->input('status'));
+    }
+
+    // تحقق من دور المستخدم
     if ($user->role === 'admin') {
         // عرض جميع الإيصالات إذا كان المستخدم Admin
-        $receipts = Receipt::with(['user:id,name', 'market', 'bank', 'admin', 'department:id,name', 'branch:id,name','bank:id,name'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query->orderBy('created_at', 'desc');
     } elseif ($user->role === 'user') {
         // عرض الإيصالات المرتبطة بالمستخدم الحالي
-        $receipts = Receipt::with(['user:id,name','market', 'bank', 'department:id,name', 'branch:id,name','bank:id,name'])
-            ->where('user_id', $user->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query->where('user_id', $user->id)->orderBy('created_at', 'desc');
     } else {
         return response()->json([
             'error' => true,
             'message' => 'Invalid user role',
         ], 403);
     }
+
+    // جلب النتائج
+    $receipts = $query->get();
 
     if ($receipts->isEmpty()) {
         return response()->json([
@@ -192,16 +134,17 @@ public function getReceipts(Request $request)
         ], 200);
     }
 
-    // تعديل الصورة في كل إيصال
+    // تعديل الصورة وتحويل الأوقات
     $receipts = $receipts->map(function ($receipt) {
         if ($receipt->image) {
             $receipt['image'] = asset('storage/' . $receipt->image);
         }
 
         $receipt['amount'] = (double)$receipt->amount;
-    // تحويل الأوقات إلى توقيت ليبيا
-    $receipt['created_at'] = Carbon::parse($receipt['created_at'])->timezone('Africa/Tripoli')->toDateTimeString();
-    $receipt['updated_at'] = Carbon::parse($receipt['updated_at'])->timezone('Africa/Tripoli')->toDateTimeString();
+
+        // تحويل الأوقات إلى توقيت ليبيا
+        $receipt['created_at'] = Carbon::parse($receipt['created_at'])->timezone('Africa/Tripoli')->toDateTimeString();
+        $receipt['updated_at'] = Carbon::parse($receipt['updated_at'])->timezone('Africa/Tripoli')->toDateTimeString();
 
         return $receipt;
     });
@@ -211,6 +154,8 @@ public function getReceipts(Request $request)
         'receipts' => $receipts,
     ], 200);
 }
+
+
 public function store(Request $request)
 {
     if (!auth()->check()) {

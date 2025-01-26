@@ -45,6 +45,7 @@ class UserResource extends Resource
                     ,
                 Forms\Components\TextInput::make('phone')
                     ->tel()
+                    ->unique()
                     ->maxLength(255),
 
                     Select::make('department_id')
