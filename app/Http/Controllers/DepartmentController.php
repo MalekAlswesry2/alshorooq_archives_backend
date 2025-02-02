@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Department;
+use App\Models\Log;
 use Illuminate\Http\Request;
 
 class DepartmentController extends Controller
@@ -15,8 +16,13 @@ class DepartmentController extends Controller
             // 'status' => 'required|in:active,inactive',
         ]);
 
+        $user = auth()->user();
         $department = Department::create($validated);
-
+        Log::addLog(
+            'إضافة  قسم جديد',
+            "تم إضافة قسم {$department->name} بواسطة {$user->name}",
+            $user->id
+        );
         return response()->json([
             'message' => 'Department created successfully',
             'department' => $department,

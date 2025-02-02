@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Area;
+use App\Models\Log;
 use App\Models\Zone;
 use Illuminate\Http\Request;
 
@@ -62,6 +63,14 @@ class AreaController extends Controller
             'message' => 'Area created successfully',
             'area' => $area,
         ], 200);
+
+        Log::addLog(
+            'إضافة منطقة جديدة',
+            "تم إضافة منطقة {$area->name} بواسطة {$user->name}",
+            $user->id
+        );
+        
+
     }
 
 

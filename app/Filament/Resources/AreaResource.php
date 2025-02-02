@@ -27,6 +27,7 @@ class AreaResource extends Resource
     protected static ?string $label = "منطقة";
     protected static ?string $navigationLabel = "مناطق";
     protected static ?string $modelLabel = "منطقة";
+    protected static ?string $pluralLabel = "المناطق";
 
     public static function form(Form $form): Form
     {

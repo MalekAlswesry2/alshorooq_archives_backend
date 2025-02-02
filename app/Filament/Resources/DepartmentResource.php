@@ -27,6 +27,8 @@ class DepartmentResource extends Resource
     protected static ?string $label = "قسم";
     protected static ?string $navigationLabel = "الاقسام";
     protected static ?string $modelLabel = "قسم";
+    protected static ?string $pluralLabel = "الاقسام";
+
     public static function form(Form $form): Form
     {
         return $form

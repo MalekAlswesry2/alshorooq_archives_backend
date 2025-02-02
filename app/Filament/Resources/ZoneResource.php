@@ -22,6 +22,8 @@ class ZoneResource extends Resource
     protected static ?string $label = "خط السير";
     protected static ?string $navigationLabel = "خطوط السير";
     protected static ?string $modelLabel = "خط السير";
+        protected static ?string $pluralLabel = "خطوط السير";
+
     public static function form(Form $form): Form
     {
         return $form

@@ -33,6 +33,7 @@ class UserResource extends Resource
     protected static ?string $label = "المستخدم";
     protected static ?string $navigationLabel = "المستخدمين";
     protected static ?string $modelLabel = "مستخدم";
+    protected static ?string $pluralLabel = "المستخدمين";
 
     public static function form(Form $form): Form
     {
@@ -48,15 +49,17 @@ class UserResource extends Resource
                     ->unique()
                     ->maxLength(255),
 
+                    Select::make('branch_id')
+                    ->label('Branch')
+                    ->options(Branch::all()->pluck('name', 'id'))
+                    ->searchable(),
+                    
                     Select::make('department_id')
                     ->label('Department')
                     ->options(Department::all()->pluck('name', 'id'))
                     ->searchable(),
 
-                    Select::make('branch_id')
-                    ->label('Branch')
-                    ->options(Branch::all()->pluck('name', 'id'))
-                    ->searchable(),
+
 
                     Select::make('zone_id')
                     ->label('Zone')

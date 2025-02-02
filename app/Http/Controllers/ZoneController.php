@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Log;
 use App\Models\Zone;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ZoneController extends Controller
 {
@@ -20,8 +22,13 @@ class ZoneController extends Controller
             'code' => 'required|string|max:10|unique:zones,code',
         ]);
 
+        $user = Auth::user();
         $zone = Zone::create($validated);
-
+        Log::addLog(
+            'إضافة خط سير جديد',
+            "تم إضافة خط سير {$zone->name} بواسطة {$user->name}",
+            $user->id
+        );
         return response()->json([
             'message' => 'Zone created successfully',
             'zone' => $zone,

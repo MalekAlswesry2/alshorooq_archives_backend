@@ -32,6 +32,8 @@ class MarketResource extends Resource
     protected static ?string $label = "عميل";
     protected static ?string $navigationLabel = "العملاء";
     protected static ?string $modelLabel = "عميل";
+    protected static ?string $pluralLabel = "العملاء";
+
     public static function form(Form $form): Form
     {
         return $form
@@ -46,7 +48,7 @@ class MarketResource extends Resource
                     ->required()
                     ->maxLength(255),
                     Select::make('area_id')
-                    ->label('خط السير')
+                    ->label('المنطقة')
                     ->required()
                     ->options(Area::all()->pluck('name', 'id'))
                     ->searchable(),

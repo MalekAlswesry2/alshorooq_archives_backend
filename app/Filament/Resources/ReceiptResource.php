@@ -35,6 +35,8 @@ class ReceiptResource extends Resource
     protected static ?string $label = "ايصال";
     protected static ?string $navigationLabel = "الايصالات";
     protected static ?string $modelLabel = "ايصال";
+    protected static ?string $pluralLabel = "الايصالات";
+
     public static function form(Form $form): Form
     {
         return $form
@@ -51,7 +53,9 @@ class ReceiptResource extends Resource
                     TextEntry::make('custom_id')->label("رقم الايصال"),
                     TextEntry::make('user.name')
                     ->label("المستخدم"),
-                    TextEntry::make('amount')->money('LYD')
+                    TextEntry::make('amount')
+                    ->formatStateUsing(fn ($state) => number_format($state, 0) . ' د.ل')
+
                     ->label("القيمة"),
                     TextEntry::make('reference_number')
                     ->label("الرقم الاشاري"),
@@ -87,7 +91,8 @@ class ReceiptResource extends Resource
                 TextColumn::make('reference_number')
                 ->label("الرقم الاشاري"),
                 TextColumn::make('amount')
-                ->label("القيمة")->summarize(Sum::make()->label('Total')),
+                ->formatStateUsing(fn ($state) => number_format($state, 0) . ' د.ل')
+                ->label("القيمة")->summarize(Sum::make()->label('الاجمالي')->formatStateUsing(fn ($state) => number_format($state, 0) . ' د.ل')),
                 TextColumn::make('bank.name')
                 ->label("المصرف"),
                 

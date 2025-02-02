@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Log;
 use Illuminate\Http\Request;
 use App\Models\Market;
 use App\Models\User;
@@ -97,7 +98,11 @@ class MarketController extends Controller
 
         // إنشاء السوق
         $market = Market::create($validated);
-
+        Log::addLog(
+            'إضافة سوق جديد',
+            "تم إضافة سوق {$market->name} بواسطة {$user->name}",
+            $user->id
+        );
         return response()->json([
             'error' => false,
             'message' => 'Market created successfully',
@@ -261,7 +266,11 @@ class MarketController extends Controller
     
         // تحديث بيانات السوق
         $market->update($validated);
-    
+        // Log::addLog(
+        //     'إضافة سوق جديد',
+        //     "تم إضافة سوق {$market->name} بواسطة {$user->name}",
+        //     $user->id
+        // );
         return response()->json([
             'message' => 'Market updated successfully',
             'market' => $market,
