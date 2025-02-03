@@ -45,14 +45,14 @@ class MarketController extends Controller
                 }),
             ],
             'address' => 'required|string|max:255',
-            // 'system_market_number' => 'required|string|unique:markets,system_market_number',
-            'system_market_number' => [
-                'required',
-                Rule::unique('markets')->where(function ($query) use ($user, $request) {
-                    return $query->where('department_id', $user->department_id)
-                                ->where('system_market_number', $request->system_market_number);
-                }),
-            ],
+            'system_market_number' => 'required|string|unique:markets,system_market_number',
+            // 'system_market_number' => [
+            //     'required',
+            //     Rule::unique('markets')->where(function ($query) use ($user, $request) {
+            //         return $query->where('department_id', $user->department_id)
+            //                     ->where('system_market_number', $request->system_market_number);
+            //     }),
+            // ],
         ]);
 
 

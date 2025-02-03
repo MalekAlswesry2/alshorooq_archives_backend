@@ -83,7 +83,7 @@ public function getReceipts(Request $request)
 
     $user = auth()->user();
 
-    $query = Receipt::with(['user:id,name', 'market', 'bank', 'department:id,name', 'branch:id,name', 'bank:id,name,account_number']);
+    $query = Receipt::with(['user:id,name', 'market', 'bank', 'department:id,name', 'branch:id,name', 'bank:id,name,account_number','admin:id,name']);
 
    
     if ($request->has('from') && $request->has('to')) {
