@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SettingResource\Pages;
 use App\Models\Setting;
 use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,12 @@ class SettingResource extends Resource
                 Forms\Components\TextInput::make('value')
                     ->label('القيمة')
                     ->required(),
+                    FileUpload::make('download_file')
+                    ->label('رفع ملف التطبيق')
+                    ->directory('downloads') // تحديد مجلد الحفظ داخل storage/app/public/downloads
+                    ->acceptedFileTypes(['application/vnd.android.package-archive', 'application/octet-stream'])
+                    ->maxSize(100000) // الحد الأقصى للحجم بالـ KB
+                    ->preserveFilenames(), //
             ]);
     }
 
