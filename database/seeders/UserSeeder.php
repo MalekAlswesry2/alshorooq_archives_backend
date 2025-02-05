@@ -18,7 +18,18 @@ class UserSeeder extends Seeder
     {
         // إنشاء مستخدم
         $user = User::updateOrCreate(
-            ['email' => 'admin@gmail.com'], // التعريف الفريد للمستخدم
+            // التعريف الفريد للمستخدم
+            [
+                'name' => 'Master User',
+                'email' => 'master@master.com',
+                'role' => 'master',
+                'phone' => '0918765432',
+                'password' => bcrypt('Master321'), // كلمة المرور
+            ]
+        );
+        
+        $user = User::updateOrCreate(
+            // التعريف الفريد للمستخدم
             [
                 'name' => 'Admin User',
                 'email' => 'admin@gmail.com',
@@ -27,6 +38,8 @@ class UserSeeder extends Seeder
                 'password' => bcrypt('Admin321'), // كلمة المرور
             ]
         );
+
+        # إنشاء مستخدم آخر
 
         // تعيين الصلاحيات للمستخدم
         $permissions = Permission::whereIn('name', ['can_view', 'can_edit'])->pluck('id');

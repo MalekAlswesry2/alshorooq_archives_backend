@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DownloadAppController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,3 +21,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/receipt', function () {
     return view('receipt'); // receipt.blade.php
 });
+Route::get('/download', [DownloadAppController::class, 'index']);
+// Route::get('/download', function () {
+//     return view('app'); // receipt.blade.php
+// });

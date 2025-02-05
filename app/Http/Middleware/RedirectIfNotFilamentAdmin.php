@@ -15,8 +15,10 @@ class RedirectIfNotFilamentAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && auth()->user()->role === 'admin') {
-            return $next($request);
+        if (auth()->check())  {
+            if(auth()->user()->role === 'admin' || auth()->user()->role === 'master'){
+                return $next($request);
+            }
         }
         return redirect('/admin/login');
     }
