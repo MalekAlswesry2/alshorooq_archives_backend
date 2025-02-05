@@ -56,6 +56,11 @@
 <body>
     <div class="container">
         <h1>📲 تحميل التطبيق</h1>
+        <div class="app-logo">
+            <img src="{{ asset('images/logo.png') }}" alt="شعار الشروق" style="height: 50px">
+            <br>
+            <span class="app-name" style="font-size: 18pt">دفتر الشروق</span>
+        </div>
         <p>اضغط على الزر أدناه لتحميل التطبيق مباشرة.</p>
         <a href="{{ $downloadLink }}" class="download-btn">
             <i class="fas fa-download"></i> تحميل الآن
