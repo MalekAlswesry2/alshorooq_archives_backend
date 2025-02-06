@@ -25,14 +25,23 @@ class SettingResource extends Resource
                     ->required(),
 
                 Forms\Components\TextInput::make('value')
+               
                     ->label('القيمة')
                     ->required(),
                     FileUpload::make('download_file')
+                    ->rules(['file', 'mimes:png,jpg,pdf,apk', 'max:102400'])
                     ->label('رفع ملف التطبيق')
                     ->directory('downloads') // تحديد مجلد الحفظ داخل storage/app/public/downloads
-                    ->acceptedFileTypes(['application/vnd.android.package-archive', 'application/octet-stream'])
-                    ->maxSize(100000) // الحد الأقصى للحجم بالـ KB
-                    ->preserveFilenames(), //
+                    // ->acceptedFileTypes([
+                    //     'image/png', 
+                    //     'image/jpeg', 
+                    //     'application/pdf', 
+                    //     'application/vnd.android.package-archive'
+                    // ])
+                    ->maxSize(102400) // الحد الأقصى للحجم بالـ KB
+                    ->preserveFilenames()
+                    
+                    
             ]);
     }
 

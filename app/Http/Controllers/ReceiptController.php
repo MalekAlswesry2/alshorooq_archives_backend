@@ -136,6 +136,7 @@ public function getReceipts(Request $request)
 
     // تعديل الصورة وتحويل الأوقات
     $receipts = $receipts->map(function ($receipt) {
+        $receipt['created_by_me'] = $receipt->created_at->format('Y-m-d H:i:s');
         if ($receipt->image) {
             $receipt['image'] = asset('storage/' . $receipt->image);
         }
@@ -143,9 +144,9 @@ public function getReceipts(Request $request)
         $receipt['amount'] = (double)$receipt->amount;
 
         // تحويل الأوقات إلى توقيت ليبيا
-        $receipt['created_at'] = Carbon::parse($receipt['created_at'])->timezone('Africa/Tripoli')->toDateTimeString();
-        $receipt['updated_at'] = Carbon::parse($receipt['updated_at'])->timezone('Africa/Tripoli')->toDateTimeString();
-
+        // $receipt['created_at'] = Carbon::parse($receipt['created_at'])->timezone(config('app.timezone'));
+        // $receipt['updated_at'] = Carbon::parse($receipt['updated_at'])->timezone('Africa/Cairo')->toDateTimeString();
+        // Carbon::parse($data['created_at'])->timezone(config('app.timezone'));
         return $receipt;
     });
 
