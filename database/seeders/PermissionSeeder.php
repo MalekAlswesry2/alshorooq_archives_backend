@@ -2,29 +2,35 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Permission;
 
 class PermissionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
-        // إنشاء الصلاحيات
         $permissions = [
-            ['name' => 'can_view'],
-            ['name' => 'can_edit'],
-            ['name' => 'can_create'],
-            ['name' => 'can_delete'],
+            'إضافة واصل',
+            // 'تعديل واصل',
+            // 'حذف واصل',
+            'استلام واصل',
+            'إضافة سوق',
+            // 'تعديل سوق',
+            // 'حذف سوق',
+            'عرض المستخدمين',
+            'إضافة ادمن',
+            // 'تعديل مستخدم',
+            // 'حذف مستخدم'
+            'عرض الصلاحيات وتعديلها',
+            'عرض الأقسام',
+            'عرض الفروع',
+            'عرض المصارف',
+            'عرض المناطق',
+            'عرض خطوط السير',
         ];
 
         foreach ($permissions as $permission) {
-            Permission::updateOrCreate(['name' => $permission['name']], $permission);
+            Permission::firstOrCreate(['name' => $permission]);
         }
     }
 }

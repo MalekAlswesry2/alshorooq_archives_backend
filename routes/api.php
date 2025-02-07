@@ -49,7 +49,11 @@ Route::prefix('mobile')->group(function () {
     // Protected Routes
     Route::middleware('auth:sanctum')->group(function () {
 
-
+        Route::get('/permissions', [UserController::class, 'showAllRoles']);
+        Route::post('/assign-permission/{userId}', [UserController::class, 'assignPermission']);
+        Route::post('/remove-permission/{userId}', [UserController::class, 'removePermission']);
+        Route::get('/user-permissions/{userId}', [UserController::class, 'checkUserPermissions']);
+    
     // add admins
     Route::post('/add-admin', [UserController::class, 'addAdmin']);
 
@@ -114,19 +118,19 @@ Route::prefix('mobile')->group(function () {
         
         Route::get('/receipts/{id}/pdfs', [ReceiptController::class, 'printReceiptAsPDF']);
 
-    Route::get('/user/permissions', function () {
-        return response()->json([
-            'permissions' => auth()->user()->permissions->pluck('name'),
-        ]);
-    });
+    // Route::get('/user/permissions', function () {
+    //     return response()->json([
+    //         'permissions' => auth()->user()->permissions->pluck('name'),
+    //     ]);
+    // });
     
 
-    Route::post('/user/{user}/permissions', function (\App\Models\User $user, Request $request) {
-        $permissions = \App\Models\Permission::whereIn('name', $request->permissions)->pluck('id');
-        $user->permissions()->sync($permissions); // sync لتحديث الصلاحيات
-        return response()->json(['message' => 'Permissions updated successfully']);
-    });
-    
+    // Route::post('/user/{user}/permissions', function (\App\Models\User $user, Request $request) {
+    //     $permissions = \App\Models\Permission::whereIn('name', $request->permissions)->pluck('id');
+    //     $user->permissions()->sync($permissions); // sync لتحديث الصلاحيات
+    //     return response()->json(['message' => 'Permissions updated successfully']);
+    // });
+
     });
     // Get Section
 

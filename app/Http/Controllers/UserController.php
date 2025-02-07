@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Permission;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -87,4 +88,71 @@ class UserController extends Controller
     //         'output' => Artisan::output(),
     //     ]);
     // }
+
+
+    public function showAllRoles()
+    {
+        $permissions = Permission::all(); // جلب كل الصلاحيات
+
+        return response()->json([
+            'permissions' => $permissions
+        ], 200);
+    }
+
+    
+    public function assignPermission(Request $request, $userId)
+    {
+        // التأكد من أن البيانات المرسلة صحيحة
+        if (!$request->has('permissions') || !is_array($request->permissions)) {
+            return response()->json(['error' => 'يجب إرسال قائمة بالصلاحيات'], 400);
+        }
+    
+        $user = User::findOrFail($userId);
+    
+        // جلب كل الصلاحيات المحددة في الطلب
+        $permissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
+    
+        // التحقق من وجود صلاحيات صالحة
+        if (empty($permissions)) {
+            return response()->json(['error' => 'لم يتم العثور على أي صلاحية'], 404);
+        }
+    
+        // مزامنة الصلاحيات: إزالة غير المحددة وإضافة الجديدة
+        $user->permissions()->sync($permissions);
+    
+        return response()->json([
+            'message' => 'تم تحديث الصلاحيات بنجاح',
+            'assigned_permissions' => $permissions
+        ], 200);
+    }
+    
+    
+
+
+public function removePermission(Request $request, $userId)
+{
+    $user = User::findOrFail($userId);
+    $permission = Permission::where('name', $request->permission)->first();
+
+    if (!$permission) {
+        return response()->json(['error' => 'الصلاحية غير موجودة'], 404);
+    }
+
+    $user->permissions()->detach($permission->id);
+
+    return response()->json(['message' => 'تمت إزالة الصلاحية بنجاح'], 200);
+}
+
+public function checkUserPermissions($userId)
+{
+    $user = User::findOrFail($userId);
+
+    $permissions = $user->permissions;
+    return response()->json([
+        // 'user' => $user->name,
+        'permissions' => $permissions,
+    ]);
+}
+
+
 }
