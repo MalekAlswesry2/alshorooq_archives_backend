@@ -23,8 +23,14 @@ class UserController extends Controller
         }
 
         // $users = User::where('role', 'user')->get(['id', 'name', 'email', 'phone', 'address', 'department']);
-        $users = User::all(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
-
+        $users = User::all(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role'])
+        ->load('permissions:id,name');
+        $users = User::with('permissions:id,name')->where('role', 'user')->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
+        $users->each(function ($user) {
+            $user->permissions->makeHidden('pivot');
+        });
+    
+        
         if ($users->isEmpty()) {
             return response()->json([
                 'message' => 'No users found with the "user" role',

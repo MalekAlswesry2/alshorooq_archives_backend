@@ -67,6 +67,8 @@ class ReceiptResource extends Resource
 
                     TextEntry::make('check_number')
                     ->label("رقم الشيك"),
+                    TextEntry::make('system_receipt_number')
+                    ->label("رقم الايصال في النظام"),
 
                 ])->columns(3),
                 Section::make('صورة الايصال')
