@@ -25,7 +25,7 @@ class UserController extends Controller
         // $users = User::where('role', 'user')->get(['id', 'name', 'email', 'phone', 'address', 'department']);
         $users = User::all(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role'])
         ->load('permissions:id,name');
-        $users = User::with('permissions:id,name')->where('role', 'user')->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
+        $users = User::with('permissions:id,name')->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
         $users->each(function ($user) {
             $user->permissions->makeHidden('pivot');
         });
@@ -98,7 +98,7 @@ class UserController extends Controller
 
     public function showAllRoles()
     {
-        $permissions = Permission::all(); // جلب كل الصلاحيات
+        $permissions = Permission::select('id','name','key')->get(); // جلب كل الصلاحيات
 
         return response()->json([
             'permissions' => $permissions
@@ -154,6 +154,12 @@ public function checkUserPermissions($userId)
     $user = User::findOrFail($userId);
 
     $permissions = $user->permissions;
+    
+    $permissions->each(function ($permission) {
+        unset($permission->pivot);
+        unset($permission->created_at);
+        unset($permission->updated_at);
+    });
     return response()->json([
         // 'user' => $user->name,
         'permissions' => $permissions,
