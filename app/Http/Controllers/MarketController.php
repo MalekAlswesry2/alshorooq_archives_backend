@@ -105,7 +105,7 @@ class MarketController extends Controller
         );
         return response()->json([
             'error' => false,
-            'message' => 'Market created successfully',
+            'message' => 'تم اضافة السوق ',
             'market' => $market,
         ], 200);
     } catch (\Illuminate\Validation\ValidationException $e) {
@@ -272,7 +272,7 @@ class MarketController extends Controller
         //     $user->id
         // );
         return response()->json([
-            'message' => 'Market updated successfully',
+            'message' => 'تم تحديث السوق',
             'market' => $market,
         ], 200);
     }
@@ -311,7 +311,7 @@ class MarketController extends Controller
         // تحديث الحالة إلى "deleted" بدلاً من حذف السوق فعليًا
         $market->update(['status' => 'deleted']);
     
-        return response()->json(['message' => 'Market marked as deleted'], 200);
+        return response()->json(['message' => 'تم حذف السوق'], 200);
     }
     
 }

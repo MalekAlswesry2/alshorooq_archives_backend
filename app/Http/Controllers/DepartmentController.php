@@ -24,7 +24,7 @@ class DepartmentController extends Controller
             $user->id
         );
         return response()->json([
-            'message' => 'Department created successfully',
+            'message' => 'تم إضافة القسم ',
             'department' => $department,
         ], 200);
     }
@@ -42,7 +42,7 @@ class DepartmentController extends Controller
         $department->update($validated);
 
         return response()->json([
-            'message' => 'Department updated successfully',
+            'message' => 'تم تحديث القسم',
             'department' => $department,
         ], 200);
     }
@@ -55,7 +55,7 @@ class DepartmentController extends Controller
         $department->update(['status' => 'inactive']);
 
         return response()->json([
-            'message' => 'Department marked as inactive',
+            'message' => 'تم حذف القسم',
         ], 200);
     }
 

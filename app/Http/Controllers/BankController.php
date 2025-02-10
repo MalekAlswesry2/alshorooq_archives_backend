@@ -47,7 +47,7 @@ class BankController extends Controller
         $bank = Bank::create($validated);
 
         return response()->json([
-            'message' => 'Bank created successfully',
+            'message' => 'تم إضافة المصرف بنجاح',
             'bank' => $bank,
         ], 200);
     }
@@ -86,7 +86,7 @@ public function update(Request $request, $id)
     $bank->update($validated);
 
     return response()->json([
-        'message' => 'Bank updated successfully',
+        'message' => 'تم تحديث بيانات المصرف بنجاح',
         'bank' => $bank,
     ], 200);
 }
@@ -116,7 +116,7 @@ public function destroy($id)
     $bank->update(['status' => 'deleted']);
 
     return response()->json([
-        'message' => 'Bank marked as deleted',
+        'message' => 'تم حذف المصرف ',
     ], 200);
 }
 

@@ -60,7 +60,7 @@ class AreaController extends Controller
         $area = Area::create($validated);
 
         return response()->json([
-            'message' => 'Area created successfully',
+            'message' => 'تم انشاء المنطقة بنجاح',
             'area' => $area,
         ], 200);
 

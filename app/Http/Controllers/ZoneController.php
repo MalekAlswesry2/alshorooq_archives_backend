@@ -30,7 +30,7 @@ class ZoneController extends Controller
             $user->id
         );
         return response()->json([
-            'message' => 'Zone created successfully',
+            'message' => 'تم اضافة خط سير',
             'zone' => $zone,
         ], 200);
     }

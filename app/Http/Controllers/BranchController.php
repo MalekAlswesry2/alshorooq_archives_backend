@@ -30,7 +30,7 @@ class BranchController extends Controller
         $branch = Branch::create($validated);
 
         return response()->json([
-            'message' => 'Branch created successfully',
+            'message' => 'تم إضافة الفرع',
             'branch' => $branch,
         ], 200);
     }
@@ -49,7 +49,7 @@ class BranchController extends Controller
         $branch->update($validated);
 
         return response()->json([
-            'message' => 'Branch updated successfully',
+            'message' => 'تم تحديث الفرع',
             'branch' => $branch,
         ], 200);
     }
@@ -62,7 +62,7 @@ class BranchController extends Controller
         $branch->update(['status' => 'inactive']);
 
         return response()->json([
-            'message' => 'Branch marked as inactive',
+            'message' => ' تم حذف الفرع',
         ], 200);
     }
 }

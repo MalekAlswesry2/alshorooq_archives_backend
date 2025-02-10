@@ -43,8 +43,9 @@ class AuthController extends Controller
 
                 // إنشاء التوكن للمستخدم
                 $token = $user->createToken('auth_token')->plainTextToken;
+
                 
-        return response()->json(['message' => 'User registered successfully!', 'user' => $user ,'token' => $token,], 200);
+        return response()->json(['message' => 'تم التسجيل بنجاح', 'user' => $user ,'token' => $token,], 200);
     }
 
 public function login(Request $request)
@@ -65,14 +66,14 @@ public function login(Request $request)
             unset($permission->pivot);
         });
         return response()->json([
-            'message' => 'Login successful',
+            'message' => 'تم تسجيل الدخول بنجاح',
             'user' => $user,
             'token' => $token,
         ], 200);
     }
 
     return response()->json([
-        'message' => 'Invalid email or password',
+        'message' => 'بيانات الدخول غير صحيحة',
     ], 401);
 }
 
@@ -104,7 +105,7 @@ public function logout(Request $request) {
 
     $request->user()->currentAccessToken()->delete();
 
-    return response()->json(['message' => 'User successfully signed out']);
+    return response()->json(['message' => 'تم تسجيل الخروج بنجاح'], 200);
 }
 public function updateProfile(Request $request)
 {
@@ -137,7 +138,7 @@ public function updateProfile(Request $request)
     ]);
 
     return response()->json([
-        'message' => 'User profile updated successfully',
+        'message' => 'تم تحديث البيانات بنجاح',
         'user' => $user,
     ], 200);
 }

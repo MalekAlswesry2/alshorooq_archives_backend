@@ -289,7 +289,7 @@ public function store(Request $request)
     );
     
     return response()->json([
-        'message' => 'Receipt created successfully',
+        'message' => 'تم إضافة الإيصال بنجاح',
         'receipt' => $receipt,
     ], 200);
 }

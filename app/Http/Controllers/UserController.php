@@ -87,7 +87,7 @@ class UserController extends Controller
         }
     
         return response()->json([
-            'message' => 'Admin created successfully!',
+            'message' => 'تم اضافة المسؤول بنجاح',
             'admin' => $admin,
         ], 200);
     }
