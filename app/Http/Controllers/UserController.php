@@ -24,7 +24,7 @@ class UserController extends Controller
 
         // $users = User::where('role', 'user')->get(['id', 'name', 'email', 'phone', 'address', 'department']);
         $users = User::all(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role'])
-        ->load('permissions:id,name');
+        ->load('permissions:id,name,key');
         $users = User::with('permissions:id,name')->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
         $users->each(function ($user) {
             $user->permissions->makeHidden('pivot');

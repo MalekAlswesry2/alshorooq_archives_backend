@@ -56,7 +56,7 @@ public function login(Request $request)
 
     if (Auth::attempt($credentials)) {
         $user = Auth::user();
-        $user->load('department:id,name','branch:id,name','permissions:id,name');
+        $user->load('department:id,name','branch:id,name','permissions:id,name,key');
         $token = $user->createToken('auth_token')->plainTextToken;
         $user['balance'] = (double)$user->balance;
 
@@ -86,7 +86,7 @@ public function profile()
     }
 
     $user = auth()->user(); // الحصول على المستخدم المصادق عليه
-    $user->load('department:id,name','branch:id,name','zone:id,name','permissions:id,name');
+    $user->load('department:id,name','branch:id,name','zone:id,name','permissions:id,name,key');
     $user->permissions->each(function ($permission) {
         unset($permission->pivot);
     });
