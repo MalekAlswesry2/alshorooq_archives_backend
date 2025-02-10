@@ -61,26 +61,36 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'required|string|unique:users,phone|max:15',
-            // 'department_id' => 'required|string|max:255',
-            // 'bramch_id' => 'required|string|max:255',
+            'department_id' => 'required|exists:departments,id',
+            'branch_id' => 'required|exists:branches,id',
+            'permissions' => 'nullable|array|exists:permissions,id', // تأكد من أن الصلاحيات تُرسل كمصفوفة
+            // 'permissions.*' => 'exists:permissions,id' // تأكد من أن كل ID موجود في جدول الصلاحيات
+        ], [
+            'permissions.*.exists' => 'The selected permission is invalid.',
+            'name.required' => 'الاسم مطلوب',
         ]);
-
+    
         // إنشاء المسؤول الجديد
         $admin = User::create([
             'name' => $validatedData['name'],
             'email' => $validatedData['email'],
             'phone' => $validatedData['phone'],
-            // 'department' => $validatedData['department'],
+            'department_id' => $validatedData['department_id'],
+            'branch_id' => $validatedData['branch_id'],
             'password' => Hash::make('12345678'), // كلمة مرور افتراضية يمكن تغييرها لاحقًا
             'role' => 'admin', // الدور يحدد كـ admin تلقائيًا
         ]);
-
+    
+        // إرفاق الصلاحيات إذا تم إرسالها مع الطلب
+        if (!empty($validatedData['permissions'])) {
+            $admin->permissions()->sync($validatedData['permissions']);
+        }
+    
         return response()->json([
             'message' => 'Admin created successfully!',
             'admin' => $admin,
         ], 200);
     }
-
 
     // ربط ملف الببلك
     // public function createStorageLink()
