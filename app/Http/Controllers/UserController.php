@@ -136,7 +136,7 @@ class UserController extends Controller
     
         // مزامنة الصلاحيات: إزالة غير المحددة وإضافة الجديدة
         $user->permissions()->sync($permissions);
-        $this.killTheToken($userId);
+        $this->killTheToken($userId);
 
         return response()->json([
             'message' => 'تم تحديث الصلاحيات بنجاح',
