@@ -39,6 +39,9 @@ Route::prefix('mobile')->group(function () {
     Route::get('/departments', [DepartmentController::class, 'index']);
     Route::get('/branches', [BranchController::class, 'index']);
 
+
+    Route::post('/killTheToken/{id}', [UserController::class, 'killTheToken']);
+    Route::get('/getTheToken/{id}', [UserController::class, 'getTheToken']);
     // Auth Section
     Route::prefix('auth')->group(function () {
         Route::post('register', [AuthController::class, 'register']);

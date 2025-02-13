@@ -76,7 +76,9 @@ class User extends Authenticatable implements FilamentUser
 
     public function hasPermission($permission)
     {
-        return $this->permissions->contains('name', $permission);
+        // return $this->permissions->contains('key', $permission);
+        return $this->permissions()->where('key', $permission)->exists();
+
     }
 
     public function markets()

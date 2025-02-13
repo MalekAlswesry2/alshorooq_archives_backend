@@ -211,4 +211,9 @@ class ReceiptResource extends Resource
             'edit' => Pages\EditReceipt::route('/{record}/edit'),
         ];
     }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasPermission('receipts_view');
+    }
 }

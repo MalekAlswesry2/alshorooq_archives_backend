@@ -203,4 +203,18 @@ class MarketResource extends Resource
             'edit' => Pages\EditMarket::route('/{record}/edit'),
         ];
     }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasPermission('markets_view');
+    }
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasPermission('markets_create');
+    }
+    public static function canUpdate(): bool
+    {
+        return auth()->user()->hasPermission('markets_update');
+    }
+   
 }

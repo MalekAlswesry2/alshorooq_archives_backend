@@ -101,4 +101,8 @@ class BranchResource extends Resource
             'edit' => Pages\EditBranch::route('/{record}/edit'),
         ];
     }
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasPermission('branches_view');
+    }
 }

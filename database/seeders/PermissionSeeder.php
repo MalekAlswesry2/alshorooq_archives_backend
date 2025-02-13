@@ -9,7 +9,7 @@ class PermissionSeeder extends Seeder
 {
     public function run()
     {
-        // $permissions = [
+        // $permissions = 
         //     'إضافة واصل',
         //     // 'تعديل واصل',
         //     // 'حذف واصل',
@@ -29,17 +29,22 @@ class PermissionSeeder extends Seeder
         //     'عرض خطوط السير',
         // ];
         $permissions = [
+            ['name' => 'عرض الصلاحيات وتعديلها', 'key' => 'permissions_view'],
+            ['name' => 'عرض الواصلات', 'key' => 'receipts_view'],
             ['name' => 'إضافة واصل', 'key' => 'receipts_create'],
             ['name' => 'استلام واصل', 'key' => 'receipts_receive'],
-            ['name' => 'إضافة سوق', 'key' => 'markets_create'],
+            ['name' => 'عرض العملاء', 'key' => 'markets_view'],
+            ['name' => 'إضافة عميل', 'key' => 'markets_create'],
+            ['name' => 'تعديل العميل', 'key' => 'markets_update'],
             ['name' => 'عرض المستخدمين', 'key' => 'users_view'],
             ['name' => 'إضافة ادمن', 'key' => 'admins_create'],
-            ['name' => 'عرض الصلاحيات وتعديلها', 'key' => 'permissions_view'],
             ['name' => 'عرض الأقسام', 'key' => 'departments_view'],
             ['name' => 'عرض الفروع', 'key' => 'branches_view'],
             ['name' => 'عرض المصارف', 'key' => 'banks_view'],
-            ['name' => 'عرض المناطق', 'key' => 'zones_view'],
-            ['name' => 'عرض خطوط السير', 'key' => 'routes_view'],
+            ['name' => 'عرض خطوط السير', 'key' => 'zones_view'],
+            ['name' => 'عرض المناطق', 'key' => 'areas_view'],
+            ['name' => 'عرض سجل الانشطة', 'key' => 'logs_view'],
+            ['name' => 'عرض الواصلات', 'key' => 'logs_view'],
         ];
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(

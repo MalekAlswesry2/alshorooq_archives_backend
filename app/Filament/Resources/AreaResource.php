@@ -89,4 +89,8 @@ class AreaResource extends Resource
             'edit' => Pages\EditArea::route('/{record}/edit'),
         ];
     }
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasPermission('areas_view');
+    }
 }

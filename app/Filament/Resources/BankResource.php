@@ -83,4 +83,8 @@ class BankResource extends Resource
             'edit' => Pages\EditBank::route('/{record}/edit'),
         ];
     }
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasPermission('banks_view');
+    }
 }

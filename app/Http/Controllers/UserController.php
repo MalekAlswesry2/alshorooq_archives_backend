@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -84,8 +85,8 @@ class UserController extends Controller
         // إرفاق الصلاحيات إذا تم إرسالها مع الطلب
         if (!empty($validatedData['permissions'])) {
             $admin->permissions()->sync($validatedData['permissions']);
+
         }
-    
         return response()->json([
             'message' => 'تم اضافة المسؤول بنجاح',
             'admin' => $admin,
@@ -135,7 +136,8 @@ class UserController extends Controller
     
         // مزامنة الصلاحيات: إزالة غير المحددة وإضافة الجديدة
         $user->permissions()->sync($permissions);
-    
+        $this.killTheToken($userId);
+
         return response()->json([
             'message' => 'تم تحديث الصلاحيات بنجاح',
             'assigned_permissions' => $permissions
@@ -176,5 +178,38 @@ public function checkUserPermissions($userId)
     ]);
 }
 
+public function killTheToken($userId){
+
+    $user = User::find($userId);
+
+    $user->name;
+    // auth()->user()->tokens->each(function ($token, $key) {
+    //     $token->delete();
+    // });
+
+    //  $userToken = Auth::token();;
+    $user->tokens->each(function ($token, $key) {
+        $token->delete();
+    });
+    
+    return response()->json([
+        'message' => 'تم تسجيل الخروج بنجاح'
+    ]);
+}
+
+
+public function getTheToken($userId){
+
+    $user = User::find($userId);
+
+    $user->name;
+    // auth()->user()->tokens->each(function ($token, $key) {
+    //     $token->delete();
+    // });
+
+    //  $userToken = Auth::token();;
+   
+    return  $user->tokens;
+}
 
 }

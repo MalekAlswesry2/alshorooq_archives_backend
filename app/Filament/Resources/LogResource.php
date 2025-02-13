@@ -91,4 +91,9 @@ class LogResource extends Resource
             'edit' => Pages\EditLog::route('/{record}/edit'),
         ];
     }
+
+       public static function canViewAny(): bool
+    {
+        return auth()->user()->hasPermission('logs_view');
+    }
 }

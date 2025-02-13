@@ -94,4 +94,9 @@ class DepartmentResource extends Resource
             'edit' => Pages\EditDepartment::route('/{record}/edit'),
         ];
     }
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasPermission('departments_view');
+    }    
+
 }

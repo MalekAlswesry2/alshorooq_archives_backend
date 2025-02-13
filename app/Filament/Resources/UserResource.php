@@ -41,30 +41,35 @@ class UserResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
+                    ->label('الاسم')
                     ->maxLength(255)
                     
                     ,
                 Forms\Components\TextInput::make('phone')
                     ->tel()
-                    ->unique()
+                    ->label('رقم الهاتف')
+                    // ->unique()
                     ->maxLength(255),
 
                     Select::make('branch_id')
-                    ->label('Branch')
+                    ->label('الفرع')
                     ->options(Branch::all()->pluck('name', 'id'))
                     ->searchable(),
                     
                     Select::make('department_id')
-                    ->label('Department')
+                    ->label('القسم')
                     ->options(Department::all()->pluck('name', 'id'))
                     ->searchable(),
 
 
 
                     Select::make('zone_id')
-                    ->label('Zone')
+                    ->label('خط السير')
                     ->options(Zone::all()->pluck('name', 'id'))
-                    ->searchable(),
+                    ->searchable()
+                    ,
+
+
                     // Forms\Components\Select::make('department')->required()->options([
                     //     'all' => 'All',
                     //     'alshoroq' => 'الشروق',
@@ -76,20 +81,31 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('role')
                     ->maxLength(255)
                     ->default('admin')
-                    ->readOnly(),
+                    ->readOnly()
+                    ->label('الدور'),
 
-                Forms\Components\TextInput::make('email')
-                    ->email()
-                    ->unique()
-                    ->required()
-                    ->maxLength(255),
-                    // ->visibleOn(),
+                // Forms\Components\TextInput::make('email')
+                //     ->email()
+                //     ->unique()
+                //     ->required()
+                //     ->maxLength(255)
+                //     ->label('البريد الالكتروني'),
+                //     // ->visibleOn(),
      
-                Forms\Components\TextInput::make('password')
-                    ->password()
-                    ->required()
-                    ->maxLength(255),
+                // Forms\Components\TextInput::make('password')
+                //     ->password()
+                //     ->required()
+                //     ->maxLength(255)
+                //     ->label('كلمة المرور'),
+                    
+                    Select::make('permissions')
+                    ->relationship('permissions', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->label('الصلاحيات')
+                    ->searchable(),
             ]);
+
     }
 
 
@@ -124,9 +140,8 @@ class UserResource extends Resource
 
                     ->searchable(),
                 Tables\Columns\TextColumn::make('status')
-                ->label("الحالة")
+                ->label("الحالة"),
 
-                    ->searchable(),
                 // Tables\Columns\TextColumn::make('role')
                 // ->label("الاسم")
                 //     ->searchable(),
@@ -149,7 +164,7 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                // Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -197,5 +212,10 @@ class UserResource extends Resource
             'view' => Pages\ViewUser::route('/{record}'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
+        
+    }
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasPermission('users_view');
     }
 }
