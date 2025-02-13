@@ -1,0 +1,4 @@
+id,name,phone,department,address,status,role,email,email_verified_at,expires_at,password,remember_token,created_at,updated_at,balance
+1,malek,0923141975,الشروق,عين زارة,active,admin,malek2@gmail.com,NULL,NULL,$2y$12$2JeyFVTvcy28kkqE9lLX/eDhTEF3/SuVUXDg7m/HnHc4PUAVkAqM2,NULL,2024-12-08 19:12:13,2024-12-08 19:12:13,0
+2,malek,0923141970,الشروق,عين زارة,active,user,malek@gmail.com,NULL,NULL,$2y$12$rGUrwFmkQ1Q6MH4jPIATXOPzE/yErPzN6v89SAa0bi5h8DJT4ea.C,NULL,2024-12-10 08:53:10,2024-12-21 16:07:25,1100
+3,nosiba,0920000000,kmkjg,kjgkfj,active,user,yoz@mail.com,NULL,NULL,$2y$12$JyztFthEdJQ7.wJNVsWOWeKoafKHah4ZihaghUl4kittolXaj6N.S,NULL,2024-12-11 07:35:20,2024-12-11 07:35:20,0
