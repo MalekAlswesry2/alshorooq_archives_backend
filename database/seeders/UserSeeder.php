@@ -22,6 +22,7 @@ class UserSeeder extends Seeder
                 'name' => 'Master User',
                 'role' => 'master',
                 'phone' => '0918765432',
+                'email' => 'master@gmail.com',
                 'password' => bcrypt('Master321'), // كلمة المرور
             ]
         );
@@ -38,6 +39,7 @@ class UserSeeder extends Seeder
                 'name' => 'Admin User',
                 'role' => 'admin',
                 'phone' => '0912345678',
+                'email' => 'admin@gmail.com',
                 'password' => bcrypt('Admin321'), // كلمة المرور
             ]
         );

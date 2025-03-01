@@ -62,7 +62,6 @@ class UserResource extends Resource
                     ->searchable(),
 
 
-
                     Select::make('zone_id')
                     ->label('خط السير')
                     ->options(Zone::all()->pluck('name', 'id'))
