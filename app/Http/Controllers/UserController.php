@@ -63,7 +63,7 @@ class UserController extends Controller
             ], 401);
         }
     
-        $users = User::where('role', '!=' ,'master')->with(['permissions:id,name,key', 'receipts' => function ($query) {
+        $users = User::where('role','user')->with(['permissions:id,name,key', 'receipts' => function ($query) {
             $query->orderBy('created_at', 'desc')->limit(1);
         }])->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
     
