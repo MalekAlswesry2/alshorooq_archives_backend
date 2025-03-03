@@ -67,6 +67,7 @@ Route::prefix('mobile')->group(function () {
 
     Route::get('/markets', [MarketController::class, 'getMarkets']);
     Route::get('/receipts', [ReceiptController::class, 'getReceipts']);
+Route::put('/receipts/{id}/cancel', [ReceiptController::class, 'cancelReceipt']);
 
     // Route::get('/current_user_markets', [MarketController::class, 'userMarkets']); // عرض كل الأسواق
     Route::post('/markets', [MarketController::class, 'store']); // إضافة سوق جديد
@@ -85,6 +86,8 @@ Route::prefix('mobile')->group(function () {
         Route::post('/', [ReceiptController::class, 'store']); // إضافة إيصال جديد
         // Route::put('/{id}/status', [ReceiptController::class, 'updateStatus']); // تحديث حالة الإيصال
         Route::put('/update-status', [ReceiptController::class, 'updateStatus']); // تحديث حالة الإيصال
+        Route::put('/{id}/cancel', [ReceiptController::class, 'cancelReceipt']);
+
     });
     // Route::get('/markets', [MarketController::class, 'index'])->middleware('permission:can_view');
     // Route::post('/markets', [MarketController::class, 'store'])->middleware('permission:can_edit');
@@ -98,6 +101,7 @@ Route::prefix('mobile')->group(function () {
 
 
         Route::get('/users', [UserController::class, 'getUsersWithUserRole']);
+        Route::get('/home_users', [UserController::class, 'getUsersWithReceiptsOrder']);
 
         Route::get('/zones/{zoneId}/areas', [AreaController::class, 'index']);
         // إنشاء منطقة جديدة

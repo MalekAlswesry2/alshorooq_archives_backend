@@ -113,10 +113,10 @@ public function getReceipts(Request $request)
     // تحقق من دور المستخدم
     if ($user->role === 'admin') {
         // عرض جميع الإيصالات إذا كان المستخدم Admin
-        $query->orderBy('created_at', 'desc');
+        $query->orderBy('created_at', 'desc')->paginate(5);
     } elseif ($user->role === 'user') {
         // عرض الإيصالات المرتبطة بالمستخدم الحالي
-        $query->where('user_id', $user->id)->orderBy('created_at', 'desc');
+        $query->where('user_id', $user->id)->orderBy('created_at', 'desc')->paginate(5);
     } else {
         return response()->json([
             'error' => true,
@@ -657,6 +657,49 @@ public function updateStatus(Request $request)
 
     return response()->json([
         'message' => 'Receipt status updated successfully',
+        'receipt' => $receipt,
+    ], 200);
+}
+
+public function cancelReceipt($receiptId)
+{
+    if (!auth()->check()) {
+        return response()->json([
+            'error' => true,
+            'message' => 'You Are Not Authenticated',
+        ], 401);
+    }
+
+    $user = auth()->user();
+
+    $receipt = Receipt::find($receiptId);
+
+    if (!$receipt) {
+        return response()->json([
+            'error' => true,
+            'message' => 'الايصال غير موجود',
+        ], 404);
+    }
+
+    if ($receipt->status === 'received') {
+        return response()->json([
+            'error' => true,
+            'message' => 'لا يمكنك الغاء ايصال قد تم استلامه مسبقا',
+        ], 400);
+    }
+
+    $receipt->update([
+        'status' => 'canceled',
+    ]);
+
+    Log::addLog(
+        'إلغاء إيصال',
+        "تم إلغاء الإيصال رقم {$receipt->id} بواسطة {$user->name}",
+        $user->id
+    );
+
+    return response()->json([
+        'message' => 'تم الغاء الإيصال بنجاح',
         'receipt' => $receipt,
     ], 200);
 }

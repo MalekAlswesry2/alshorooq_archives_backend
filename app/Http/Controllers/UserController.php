@@ -26,7 +26,7 @@ class UserController extends Controller
         // $users = User::where('role', 'user')->get(['id', 'name', 'email', 'phone', 'address', 'department']);
         // $users = User::all(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role'])
         // ->load('permissions:id,name,key');
-        $users = User::with('permissions:id,name,key')->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
+        $users = User::where('role', '!=' ,'master')->with('permissions:id,name,key')->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
         $users->each(function ($user) {
             $user->permissions->makeHidden('pivot');
         });
@@ -54,7 +54,40 @@ class UserController extends Controller
             'users' => $users,
         ], 200);
     }
-
+    public function getUsersWithReceiptsOrder()
+    { 
+        if (!auth()->check()) {
+            return response()->json([
+                'error' => true,
+                'message' => 'You Are Not Authenticated',
+            ], 401);
+        }
+    
+        $users = User::where('role', '!=' ,'master')->with(['permissions:id,name,key', 'receipts' => function ($query) {
+            $query->orderBy('created_at', 'desc')->limit(1);
+        }])->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
+    
+        $users->each(function ($user) {
+            $user->permissions->makeHidden('pivot');
+        });
+    
+        $sortedUsers = $users->sortByDesc(function ($user) {
+            return optional($user->receipts->first())->created_at;
+        })->values();
+    
+        if ($sortedUsers->isEmpty()) {
+            return response()->json([
+                'message' => 'No users found with the "user" role',
+                'users' => $sortedUsers,
+            ], 200);
+        }
+    
+        return response()->json([
+            'message' => 'Users retrieved successfully',
+            'users' => $sortedUsers,
+        ], 200);
+    }
+    
     public function addAdmin(Request $request)
     {
         // التحقق من البيانات المدخلة
