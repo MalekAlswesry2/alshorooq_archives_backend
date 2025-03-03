@@ -43,7 +43,9 @@ class AuthController extends Controller
 
                 // إنشاء التوكن للمستخدم
                 $token = $user->createToken('auth_token')->plainTextToken;
-
+                $user->permissions->each(function ($permission) {
+                    unset($permission->pivot);
+                });
                 
         return response()->json(['message' => 'تم التسجيل بنجاح', 'user' => $user ,'token' => $token,], 200);
     }

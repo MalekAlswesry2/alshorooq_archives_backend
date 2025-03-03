@@ -83,13 +83,13 @@ class UserResource extends Resource
                     ->readOnly()
                     ->label('الدور'),
 
-                // Forms\Components\TextInput::make('email')
-                //     ->email()
-                //     ->unique()
-                //     ->required()
-                //     ->maxLength(255)
-                //     ->label('البريد الالكتروني'),
-                //     // ->visibleOn(),
+                Forms\Components\TextInput::make('email')
+                    ->email()
+                    ->unique()
+                    ->required()
+                    ->maxLength(255)
+                    ->label('البريد الالكتروني')
+                    ->visible(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord),
      
                 // Forms\Components\TextInput::make('password')
                 //     ->password()
