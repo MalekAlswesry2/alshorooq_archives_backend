@@ -65,7 +65,7 @@ class UserController extends Controller
     
         $users = User::where('role','user')->with(['permissions:id,name,key', 'receipts' => function ($query) {
             $query->orderBy('created_at', 'desc')->limit(1);
-        }])->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
+        }])->get(['id',  'phone', 'zone_id', 'role']);
     
         $users->each(function ($user) {
             $user->permissions->makeHidden('pivot');
