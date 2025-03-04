@@ -157,92 +157,6 @@ class ReceiptController extends Controller
 //     ], 200);
 // }
 
-// public function getReceipts(Request $request)
-// {
-//     if (!auth()->check()) {
-//         return response()->json([
-//             'error'   => true,
-//             'message' => 'You Are Not Authenticated',
-//         ], 401);
-//     }
-
-//     $user = auth()->user();
-
-//     // Build the base query
-//     $query = Receipt::with([
-//         'user:id,name',
-//         'market',
-//         'bank',
-//         'department:id,name',
-//         'branch:id,name',
-//         'bank:id,name,account_number',
-//         'admin:id,name'
-//     ]);
-
-//     // Filters
-//     if ($request->has('from') && $request->has('to')) {
-//         $query->whereBetween('created_at', [$request->input('from'), $request->input('to')]);
-//     }
-//     if ($request->has('user')) {
-//         $query->where('user_id', $request->input('user'));
-//     }
-//     if ($request->has('bank')) {
-//         $query->where('bank_id', $request->input('bank'));
-//     }
-//     if ($request->has('payment_methods')) {
-//         $query->where('payment_method', $request->input('payment_methods'));
-//     }
-//     if ($request->has('status')) {
-//         $query->where('status', $request->input('status'));
-//     }
-
-//     // Role check
-//     if ($user->role === 'admin') {
-//         // Admin sees all
-//         $receipts = $query->orderBy('created_at', 'desc')->paginate(5);
-//     } elseif ($user->role === 'user') {
-//         // User sees only his receipts
-//         $receipts = $query->where('user_id', $user->id)
-//                           ->orderBy('created_at', 'desc')
-//                           ->paginate(5);
-//     } else {
-//         return response()->json([
-//             'error'   => true,
-//             'message' => 'Invalid user role',
-//         ], 403);
-//     }
-
-//     // If there are no results
-//     if ($receipts->isEmpty()) {
-//         return response()->json([
-//             'message'  => 'No receipts available',
-//             'receipts' => $receipts,
-//         ], 200);
-//     }
-
-//     // Transform each receipt in the current page collection
-//     $receipts->getCollection()->transform(function ($receipt) {
-//         $receipt['created_by_me'] = $receipt->created_at->format('Y-m-d H:i:s');
-
-//         if ($receipt->image) {
-//             $receipt['image'] = asset('storage/' . $receipt->image);
-//         }
-
-//         $receipt['amount'] = (double) $receipt->amount;
-
-//         // You can convert timezones here if you want
-//         // e.g. $receipt['created_at'] = Carbon::parse($receipt['created_at'])->timezone('Africa/Cairo')->toDateTimeString();
-//         // etc...
-
-//         return $receipt;
-//     });
-
-//     // Return the paginated result with the transformed data
-//     return response()->json([
-//         'message'  => 'Receipts retrieved successfully',
-//         'receipts' => $receipts,
-//     ], 200);
-// }
 public function getReceipts(Request $request)
 {
     if (!auth()->check()) {
@@ -254,7 +168,6 @@ public function getReceipts(Request $request)
 
     $user = auth()->user();
 
-    // بناء الاستعلام الأساسي
     $query = Receipt::with([
         'user:id,name',
         'market',
@@ -265,7 +178,7 @@ public function getReceipts(Request $request)
         'admin:id,name'
     ]);
 
-    // ✅ تطبيق الفلاتر إن وجدت
+    // Filters
     if ($request->has('from') && $request->has('to')) {
         $query->whereBetween('created_at', [$request->input('from'), $request->input('to')]);
     }
@@ -282,18 +195,12 @@ public function getReceipts(Request $request)
         $query->where('status', $request->input('status'));
     }
 
-    // ✅ حساب عدد الواصلات غير المستلمة لكل مستخدم
-    $userReceiptsCount = Receipt::selectRaw('user_id, COUNT(*) as not_received_count')
-        ->where('status', 'not_received')
-        ->groupBy('user_id')
-        ->pluck('not_received_count', 'user_id');
-
-    // ✅ تحديد البيانات بناءً على دور المستخدم
+    // Role check
     if ($user->role === 'admin') {
-        // المسؤول يرى جميع الإيصالات
+        // Admin sees all
         $receipts = $query->orderBy('created_at', 'desc')->paginate(5);
     } elseif ($user->role === 'user') {
-        // المستخدم يرى فقط إيصالاته
+        // User sees only his receipts
         $receipts = $query->where('user_id', $user->id)
                           ->orderBy('created_at', 'desc')
                           ->paginate(5);
@@ -304,16 +211,8 @@ public function getReceipts(Request $request)
         ], 403);
     }
 
-    // إذا لم تكن هناك إيصالات
-    if ($receipts->isEmpty()) {
-        return response()->json([
-            'message'  => 'No receipts available',
-            'receipts' => $receipts,
-        ], 200);
-    }
-
-    // ✅ تعديل كل إيصال في الصفحة الحالية
-    $receipts->getCollection()->transform(function ($receipt) use ($userReceiptsCount) {
+    // Transform each receipt in the current page collection
+    $receipts->getCollection()->transform(function ($receipt) {
         $receipt['created_by_me'] = $receipt->created_at->format('Y-m-d H:i:s');
 
         if ($receipt->image) {
@@ -322,18 +221,114 @@ public function getReceipts(Request $request)
 
         $receipt['amount'] = (double) $receipt->amount;
 
-        // ✅ إرفاق عدد الإيصالات غير المستلمة لكل مستخدم
-        $receipt['not_received_count'] = $userReceiptsCount[$receipt->user_id] ?? 0;
-
         return $receipt;
     });
 
-    // ✅ إرجاع البيانات مع الإيصالات غير المستلمة لكل مستخدم
     return response()->json([
         'message'  => 'Receipts retrieved successfully',
-        'receipts' => $receipts,
+        'receipts' => $receipts->items(), 
+        'meta'     => [
+            'current_page' => $receipts->currentPage(),
+            'total'        => $receipts->total(),
+            'per_page'     => $receipts->perPage(),
+            'last_page'    => $receipts->lastPage(),
+            'next_page_url' => $receipts->nextPageUrl(),
+            'prev_page_url' => $receipts->previousPageUrl(),
+        ]
     ], 200);
 }
+
+// public function getReceipts(Request $request)
+// {
+//     if (!auth()->check()) {
+//         return response()->json([
+//             'error'   => true,
+//             'message' => 'You Are Not Authenticated',
+//         ], 401);
+//     }
+
+//     $user = auth()->user();
+
+//     // بناء الاستعلام الأساسي
+//     $query = Receipt::with([
+//         'user:id,name',
+//         'market',
+//         'bank',
+//         'department:id,name',
+//         'branch:id,name',
+//         'bank:id,name,account_number',
+//         'admin:id,name'
+//     ]);
+
+//     // ✅ تطبيق الفلاتر إن وجدت
+//     if ($request->has('from') && $request->has('to')) {
+//         $query->whereBetween('created_at', [$request->input('from'), $request->input('to')]);
+//     }
+//     if ($request->has('user')) {
+//         $query->where('user_id', $request->input('user'));
+//     }
+//     if ($request->has('bank')) {
+//         $query->where('bank_id', $request->input('bank'));
+//     }
+//     if ($request->has('payment_methods')) {
+//         $query->where('payment_method', $request->input('payment_methods'));
+//     }
+//     if ($request->has('status')) {
+//         $query->where('status', $request->input('status'));
+//     }
+
+//     // ✅ حساب عدد الواصلات غير المستلمة لكل مستخدم
+//     $userReceiptsCount = Receipt::selectRaw('user_id, COUNT(*) as not_received_count')
+//         ->where('status', 'not_received')
+//         ->groupBy('user_id')
+//         ->pluck('not_received_count', 'user_id');
+
+//     // ✅ تحديد البيانات بناءً على دور المستخدم
+//     if ($user->role === 'admin') {
+//         // المسؤول يرى جميع الإيصالات
+//         $receipts = $query->orderBy('created_at', 'desc')->paginate(5);
+//     } elseif ($user->role === 'user') {
+//         // المستخدم يرى فقط إيصالاته
+//         $receipts = $query->where('user_id', $user->id)
+//                           ->orderBy('created_at', 'desc')
+//                           ->paginate(5);
+//     } else {
+//         return response()->json([
+//             'error'   => true,
+//             'message' => 'Invalid user role',
+//         ], 403);
+//     }
+
+//     // إذا لم تكن هناك إيصالات
+//     if ($receipts->isEmpty()) {
+//         return response()->json([
+//             'message'  => 'No receipts available',
+//             'receipts' => $receipts,
+//         ], 200);
+//     }
+
+//     // ✅ تعديل كل إيصال في الصفحة الحالية
+//     $receipts->getCollection()->transform(function ($receipt) use ($userReceiptsCount) {
+//         $receipt['created_by_me'] = $receipt->created_at->format('Y-m-d H:i:s');
+
+//         if ($receipt->image) {
+//             $receipt['image'] = asset('storage/' . $receipt->image);
+//         }
+
+//         $receipt['amount'] = (double) $receipt->amount;
+
+//         // ✅ إرفاق عدد الإيصالات غير المستلمة لكل مستخدم
+//         $receipt['not_received_count'] = $userReceiptsCount[$receipt->user_id] ?? 0;
+
+//         return $receipt;
+//     });
+
+//     // ✅ إرجاع البيانات مع الإيصالات غير المستلمة لكل مستخدم
+//     return response()->json([
+//         'message'  => 'Receipts retrieved successfully',
+//         'receipts' => $receipts,
+//     ], 200);
+// }
 
 public function store(Request $request)
 {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Permission;
+use App\Models\Receipt;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -54,8 +55,41 @@ class UserController extends Controller
             'users' => $users,
         ], 200);
     }
+    // public function getUsersWithReceiptsOrder()
+    // { 
+    //     if (!auth()->check()) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'You Are Not Authenticated',
+    //         ], 401);
+    //     }
+    
+    //     $users = User::where('role','user')->with([ 'receipts' => function ($query) {
+    //         $query->orderBy('created_at', 'desc')->limit(1);
+    //     }])->get(['id',  'phone', 'zone_id', 'role']);
+    
+    //     $users->each(function ($user) {
+    //         $user->permissions->makeHidden('pivot');
+    //     });
+    
+    //     $sortedUsers = $users->sortByDesc(function ($user) {
+    //         return optional($user->receipts->first())->created_at;
+    //     })->values();
+    
+    //     if ($sortedUsers->isEmpty()) {
+    //         return response()->json([
+    //             'message' => 'No users found with the "user" role',
+    //             'users' => $sortedUsers,
+    //         ], 200);
+    //     }
+    
+    //     return response()->json([
+    //         'message' => 'Users retrieved successfully',
+    //         'users' => $sortedUsers,
+    //     ], 200);
+    // }
     public function getUsersWithReceiptsOrder()
-    { 
+    {
         if (!auth()->check()) {
             return response()->json([
                 'error' => true,
@@ -63,31 +97,33 @@ class UserController extends Controller
             ], 401);
         }
     
-        $users = User::where('role','user')->with(['permissions:id,name,key', 'receipts' => function ($query) {
-            $query->orderBy('created_at', 'desc')->limit(1);
-        }])->get(['id',  'phone', 'zone_id', 'role']);
-    
-        $users->each(function ($user) {
-            $user->permissions->makeHidden('pivot');
-        });
-    
-        $sortedUsers = $users->sortByDesc(function ($user) {
-            return optional($user->receipts->first())->created_at;
-        })->values();
-    
-        if ($sortedUsers->isEmpty()) {
-            return response()->json([
-                'message' => 'No users found with the "user" role',
-                'users' => $sortedUsers,
-            ], 200);
-        }
+        $users = User::where('role', 'user')
+            ->withCount([
+                'receipts as receipts_not_received_count' => function ($query) {
+                    $query->where('status', 'not_received');
+                }
+            ])
+            ->with([
+                'receipts' => function ($query) {
+                    $query->latest()->limit(1)->select('id', 'user_id', 'created_at', 'status');
+                }
+            ])
+            ->orderByDesc(
+                Receipt::select('created_at')
+                    ->whereColumn('user_id', 'users.id')
+                    ->latest()
+                    ->limit(1)
+            )->get(['id', 'name', 'phone', 'zone_id', 'role']);
+            // ->get();
     
         return response()->json([
             'message' => 'Users retrieved successfully',
-            'users' => $sortedUsers,
+            'users' => $users,
         ], 200);
     }
     
+    
+
     public function addAdmin(Request $request)
     {
         // التحقق من البيانات المدخلة
