@@ -157,7 +157,7 @@ class ReceiptController extends Controller
 //     ], 200);
 // }
 
-public function getReceipts(Request $request)
+public function getReceipts(Request $request, $userId = null)
 {
     if (!auth()->check()) {
         return response()->json([
@@ -177,6 +177,8 @@ public function getReceipts(Request $request)
         'bank:id,name,account_number',
         'admin:id,name'
     ]);
+
+
 
     // Filters
     if ($request->has('from') && $request->has('to')) {
@@ -198,7 +200,12 @@ public function getReceipts(Request $request)
     // Role check
     if ($user->role === 'admin') {
         // Admin sees all
-        $receipts = $query->orderBy('created_at', 'desc')->paginate(5);
+        if($userId != null){
+            $receipts = $query->where('user_id', $userId)->orderBy('created_at', 'desc')
+            ->paginate(5);
+        }else{
+            $receipts = $query->orderBy('created_at', 'desc')->paginate(5);
+        }
     } elseif ($user->role === 'user') {
         // User sees only his receipts
         $receipts = $query->where('user_id', $user->id)

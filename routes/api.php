@@ -67,7 +67,8 @@ Route::prefix('mobile')->group(function () {
 
     Route::get('/markets', [MarketController::class, 'getMarkets']);
     Route::get('/receipts', [ReceiptController::class, 'getReceipts']);
-Route::put('/receipts/{id}/cancel', [ReceiptController::class, 'cancelReceipt']);
+    Route::get('/receipts/{userId?}', [ReceiptController::class, 'getReceipts']);
+    Route::put('/receipts/{id}/cancel', [ReceiptController::class, 'cancelReceipt']);
 
     // Route::get('/current_user_markets', [MarketController::class, 'userMarkets']); // عرض كل الأسواق
     Route::post('/markets', [MarketController::class, 'store']); // إضافة سوق جديد
