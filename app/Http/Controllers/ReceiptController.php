@@ -181,9 +181,16 @@ public function getReceipts(Request $request, $userId = null)
 
 
     // Filters
+    // if ($request->has('from') && $request->has('to')) {
+    //     $query->whereBetween('created_at', [$request->input('from'), $request->input('to')]);
+    // }
     if ($request->has('from') && $request->has('to')) {
-        $query->whereBetween('created_at', [$request->input('from'), $request->input('to')]);
+        $from = $request->input('from') . ' 00:00:00';
+        $to = $request->input('to') . ' 23:59:59';
+    
+        $query->whereBetween('created_at', [$from, $to]);
     }
+    
     if ($request->has('user')) {
         $query->where('user_id', $request->input('user'));
     }
@@ -194,6 +201,7 @@ public function getReceipts(Request $request, $userId = null)
         $query->where('payment_method', $request->input('payment_methods'));
     }
     if ($request->has('status')) {
+        
         $query->where('status', $request->input('status'));
     }
 
@@ -209,8 +217,8 @@ public function getReceipts(Request $request, $userId = null)
     } elseif ($user->role === 'user') {
         // User sees only his receipts
         $receipts = $query->where('user_id', $user->id)
-                          ->orderBy('created_at', 'desc')
-                          ->paginate(5);
+                        ->orderBy('created_at', 'desc')
+                        ->paginate(5);
     } else {
         return response()->json([
             'error'   => true,
