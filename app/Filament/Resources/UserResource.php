@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Zone;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
@@ -21,6 +22,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Infolists\Infolist;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Validation\Rule;
 
 class UserResource extends Resource
 {
@@ -43,14 +46,12 @@ class UserResource extends Resource
                     ->required()
                     ->label('الاسم')
                     ->maxLength(255)
-                    
                     ,
-                Forms\Components\TextInput::make('phone')
-                    ->tel()
-                    ->label('رقم الهاتف')
-                    // ->unique()
-                    ->maxLength(255),
-
+                    TextInput::make('phone')
+                        ->label('رقم الهاتف')
+                        ->required()
+                        ->unique(ignoreRecord: true),
+                    
                     Select::make('branch_id')
                     ->label('الفرع')
                     ->options(Branch::all()->pluck('name', 'id'))
@@ -91,18 +92,32 @@ class UserResource extends Resource
                     ->label('البريد الالكتروني')
                     ->visible(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord),
      
-                // Forms\Components\TextInput::make('password')
-                //     ->password()
-                //     ->required()
-                //     ->maxLength(255)
-                //     ->label('كلمة المرور'),
-                    
+                Forms\Components\TextInput::make('password')
+                    ->password()
+                    ->required()
+                    ->maxLength(255)
+                    ->label('كلمة المرور')
+                    ->visible(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord),
+
+                    Select::make('status')
+                    ->options([
+                        'active' => 'Active',
+                        'inactive' => 'Inactive',
+                    ])->label("")
+                    ->default('active')
+                    ->required()
+                    ->visible(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\EditRecord),
+
                     Select::make('permissions')
                     ->relationship('permissions', 'name')
                     ->multiple()
                     ->preload()
                     ->label('الصلاحيات')
                     ->searchable(),
+
+
+
+                
             ]);
 
     }

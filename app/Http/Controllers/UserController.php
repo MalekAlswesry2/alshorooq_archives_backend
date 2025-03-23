@@ -97,7 +97,7 @@ class UserController extends Controller
             ], 401);
         }
     
-        $users = User::where('role', 'user')
+        $users = User::where('role', 'user')->where('status', 'active')
             ->withCount([
                 'receipts as receipts_not_received_count' => function ($query) {
                     $query->where('status', 'not_received');
