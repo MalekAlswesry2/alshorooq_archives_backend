@@ -15,46 +15,88 @@ class UserController extends Controller
     /**
      * عرض جميع المستخدمين الذين لديهم دور user.
      */
-    public function getUsersWithUserRole()
-    { 
-        if (!auth()->check()) {
-            return response()->json([
-                'error' => true,
-                'message' => 'You Are Not Authenticated',
-            ], 401);
-        }
 
-        // $users = User::where('role', 'user')->get(['id', 'name', 'email', 'phone', 'address', 'department']);
-        // $users = User::all(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role'])
-        // ->load('permissions:id,name,key');
-        $users = User::where('role', '!=' ,'master')->with('permissions:id,name,key')->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
-        $users->each(function ($user) {
-            $user->permissions->makeHidden('pivot');
-        });
-    
-        
-        if ($users->isEmpty()) {
-            return response()->json([
-                'message' => 'No users found with the "user" role',
-                'users' => $users,
-            ], 200);
-        }
-
-
-
-        // $users = $users->map(function ($user) {
-         
-    
-        //     $user['balance'] = (double)$user->balance;
-
-        //     return $user;
-        // });
-
+     public function getUsersWithUserRole()
+{ 
+    if (!auth()->check()) {
         return response()->json([
-            'message' => 'Users retrieved successfully',
+            'error' => true,
+            'message' => 'You Are Not Authenticated',
+        ], 401);
+    }
+
+    $admin = auth()->user();
+
+    if ($admin->role !== 'admin') {
+        return response()->json([
+            'error' => true,
+            'message' => 'Unauthorized. Only admin can access this.',
+        ], 403);
+    }
+
+    $users = User::where('role', '!=', 'master')
+        ->where('department_id', $admin->department_id)
+        ->where('branch_id', $admin->branch_id)
+        ->with('permissions:id,name,key')
+        ->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
+
+    $users->each(function ($user) {
+        $user->permissions->makeHidden('pivot');
+    });
+
+    if ($users->isEmpty()) {
+        return response()->json([
+            'message' => 'No users found in your department and branch',
             'users' => $users,
         ], 200);
     }
+
+    return response()->json([
+        'message' => 'Users retrieved successfully',
+        'users' => $users,
+    ], 200);
+}
+
+    // public function getUsersWithUserRole()
+    // { 
+    //     if (!auth()->check()) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'You Are Not Authenticated',
+    //         ], 401);
+    //     }
+
+    //     // $users = User::where('role', 'user')->get(['id', 'name', 'email', 'phone', 'address', 'department']);
+    //     // $users = User::all(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role'])
+    //     // ->load('permissions:id,name,key');
+    //     $users = User::where('role', '!=' ,'master')->with('permissions:id,name,key')->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
+    //     $users->each(function ($user) {
+    //         $user->permissions->makeHidden('pivot');
+    //     });
+    
+        
+    //     if ($users->isEmpty()) {
+    //         return response()->json([
+    //             'message' => 'No users found with the "user" role',
+    //             'users' => $users,
+    //         ], 200);
+    //     }
+
+
+
+    //     // $users = $users->map(function ($user) {
+         
+    
+    //     //     $user['balance'] = (double)$user->balance;
+
+    //     //     return $user;
+    //     // });
+
+    //     return response()->json([
+    //         'message' => 'Users retrieved successfully',
+    //         'users' => $users,
+    //     ], 200);
+    // }
     // public function getUsersWithReceiptsOrder()
     // { 
     //     if (!auth()->check()) {
@@ -88,40 +130,86 @@ class UserController extends Controller
     //         'users' => $sortedUsers,
     //     ], 200);
     // }
+    // public function getUsersWithReceiptsOrder()
+    // {
+    //     if (!auth()->check()) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'You Are Not Authenticated',
+    //         ], 401);
+    //     }
+    
+    //     $users = User::where('role', 'user')->where('status', 'active')
+    //         ->withCount([
+    //             'receipts as receipts_not_received_count' => function ($query) {
+    //                 $query->where('status', 'not_received');
+    //             }
+    //         ])
+    //         ->with([
+    //             'receipts' => function ($query) {
+    //                 $query->latest()->limit(1)->select('id', 'user_id', 'created_at', 'status');
+    //             }
+    //         ])
+    //         ->orderByDesc(
+    //             Receipt::select('created_at')
+    //                 ->whereColumn('user_id', 'users.id')
+    //                 ->latest()
+    //                 ->limit(1)
+    //         )->get(['id', 'name', 'phone', 'zone_id', 'role']);
+    //         // ->get();
+    
+    //     return response()->json([
+    //         'message' => 'Users retrieved successfully',
+    //         'users' => $users,
+    //     ], 200);
+    // }
     public function getUsersWithReceiptsOrder()
-    {
-        if (!auth()->check()) {
-            return response()->json([
-                'error' => true,
-                'message' => 'You Are Not Authenticated',
-            ], 401);
-        }
-    
-        $users = User::where('role', 'user')->where('status', 'active')
-            ->withCount([
-                'receipts as receipts_not_received_count' => function ($query) {
-                    $query->where('status', 'not_received');
-                }
-            ])
-            ->with([
-                'receipts' => function ($query) {
-                    $query->latest()->limit(1)->select('id', 'user_id', 'created_at', 'status');
-                }
-            ])
-            ->orderByDesc(
-                Receipt::select('created_at')
-                    ->whereColumn('user_id', 'users.id')
-                    ->latest()
-                    ->limit(1)
-            )->get(['id', 'name', 'phone', 'zone_id', 'role']);
-            // ->get();
-    
+{
+    if (!auth()->check()) {
         return response()->json([
-            'message' => 'Users retrieved successfully',
-            'users' => $users,
-        ], 200);
+            'error' => true,
+            'message' => 'You Are Not Authenticated',
+        ], 401);
     }
-    
+
+    $admin = auth()->user();
+
+    // التحقق من أن المستخدم المسجل هو أدمن
+    if ($admin->role !== 'admin') {
+        return response()->json([
+            'error' => true,
+            'message' => 'Unauthorized. Only admin can access this.',
+        ], 403);
+    }
+
+    $users = User::where('role', 'user')
+        ->where('status', 'active')
+        ->where('department_id', $admin->department_id)
+        ->where('branch_id', $admin->branch_id)
+        ->withCount([
+            'receipts as receipts_not_received_count' => function ($query) {
+                $query->where('status', 'not_received');
+            }
+        ])
+        ->with([
+            'receipts' => function ($query) {
+                $query->latest()->limit(1)->select('id', 'user_id', 'created_at', 'status');
+            }
+        ])
+        ->orderByDesc(
+            Receipt::select('created_at')
+                ->whereColumn('user_id', 'users.id')
+                ->latest()
+                ->limit(1)
+        )
+        ->get(['id', 'name', 'phone', 'zone_id', 'role']);
+
+    return response()->json([
+        'message' => 'Users retrieved successfully',
+        'users' => $users,
+    ], 200);
+}
+
     
 
     public function addAdmin(Request $request)

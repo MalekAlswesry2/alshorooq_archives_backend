@@ -196,46 +196,86 @@ class MarketController extends Controller
 
 
     
-    public function getMarkets(Request $request)
-    {
-        if (!auth()->check()) {
-            return response()->json([
-                'error' => true,
-                'message' => 'You Are Not Authenticated',
-            ], 401);
-        }
+    // public function getMarkets(Request $request)
+    // {
+    //     if (!auth()->check()) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'You Are Not Authenticated',
+    //         ], 401);
+    //     }
     
-        $user = auth()->user();
+    //     $user = auth()->user();
     
-        if ($user->role === 'admin') {
-            // عرض جميع الأسواق إذا كان المستخدم Admin
-            $markets = Market::with(['user:id,name','branch:id,name','department:id,name'])->get();
-        } elseif ($user->role === 'user') {
-            // عرض الأسواق المرتبطة بالمستخدم الحالي
-            // $markets = $user->markets()->with('user')->get();
-            $markets = $user->markets()->with(['user:id,name','branch:name','department:id,name'])->get();
+    //     if ($user->role === 'admin') {
+    //         // عرض جميع الأسواق إذا كان المستخدم Admin
+    //         $markets = Market::with(['user:id,name','branch:id,name','department:id,name'])->get();
+    //     } elseif ($user->role === 'user') {
+    //         // عرض الأسواق المرتبطة بالمستخدم الحالي
+    //         // $markets = $user->markets()->with('user')->get();
+    //         $markets = $user->markets()->with(['user:id,name','branch:name','department:id,name'])->get();
 
-        } else {
-            return response()->json([
-                'error' => true,
-                'message' => 'Invalid user role',
-            ], 403);
-        }
+    //     } else {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'Invalid user role',
+    //         ], 403);
+    //     }
     
-        if ($markets->isEmpty()) {
-            return response()->json([
-                'message' => 'No markets available',
-                'markets' => $markets,
-            ], 200);
-        }
+    //     if ($markets->isEmpty()) {
+    //         return response()->json([
+    //             'message' => 'No markets available',
+    //             'markets' => $markets,
+    //         ], 200);
+    //     }
     
+    //     return response()->json([
+    //         'message' => 'Markets retrieved successfully',
+    //         'markets' => $markets,
+    //     ], 200);
+    // }
+    
+    public function getMarkets(Request $request)
+{
+    if (!auth()->check()) {
         return response()->json([
-            'message' => 'Markets retrieved successfully',
+            'error' => true,
+            'message' => 'You Are Not Authenticated',
+        ], 401);
+    }
+
+    $user = auth()->user();
+
+    if ($user->role === 'admin') {
+        // فقط الأسواق التي تنتمي إلى نفس الفرع والقسم
+        $markets = Market::with(['user:id,name', 'branch:id,name', 'department:id,name'])
+            ->where('department_id', $user->department_id)
+            ->where('branch_id', $user->branch_id)
+            ->get();
+
+    } elseif ($user->role === 'user') {
+        // عرض الأسواق المرتبطة بالمستخدم الحالي
+        $markets = $user->markets()->with(['user:id,name', 'branch:id,name', 'department:id,name'])->get();
+    } else {
+        return response()->json([
+            'error' => true,
+            'message' => 'Invalid user role',
+        ], 403);
+    }
+
+    if ($markets->isEmpty()) {
+        return response()->json([
+            'message' => 'No markets available',
             'markets' => $markets,
         ], 200);
     }
-    
-    
+
+    return response()->json([
+        'message' => 'Markets retrieved successfully',
+        'markets' => $markets,
+    ], 200);
+}
+
     public function update(Request $request, $id)
     {
         if (!auth()->check()) {

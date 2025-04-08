@@ -7,24 +7,55 @@ use Illuminate\Http\Request;
 class BankController extends Controller
 {
     // عرض كل المصارف
+    // public function index()
+    // {
+
+    //     if (!auth()->user()) {
+    //         return response()->json([
+    //             'error' => true,
+    //             'message' => 'You Are Not Authenticated',
+    //         ], 401);
+    //     }
+
+    //     $banks = Bank::with(['branch'])->get();
+    //     // $markets = $user->markets()->with(['user:id,name','branch:name','department:id,name'])->get();
+
+    //     return response()->json([
+    //         'banks' => $banks,
+    //     ]);
+    // }
     public function index()
     {
-
-        if (!auth()->user()) {
+        $user = auth()->user();
+    
+        if (!$user) {
             return response()->json([
                 'error' => true,
                 'message' => 'You Are Not Authenticated',
             ], 401);
         }
-
-        $banks = Bank::with(['branch'])->get();
-        // $markets = $user->markets()->with(['user:id,name','branch:name','department:id,name'])->get();
-
+    
+        if ($user->role === 'admin') {
+            // عرض المصارف التي تتبع لنفس فرع الأدمن
+            $banks = Bank::with('branch')
+                ->where('branch_id', $user->branch_id)
+                ->get();
+        } elseif ($user->role === 'user') {
+            // يمكن عرض جميع المصارف أو تخصيصها حسب الحاجة
+            $banks = Bank::with('branch')->get();
+        } else {
+            return response()->json([
+                'error' => true,
+                'message' => 'Invalid user role',
+            ], 403);
+        }
+    
         return response()->json([
             'banks' => $banks,
         ]);
     }
-
+    
+    
     // إضافة مصرف جديد
     public function store(Request $request)
     {
