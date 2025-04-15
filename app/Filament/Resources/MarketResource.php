@@ -216,5 +216,27 @@ class MarketResource extends Resource
     {
         return auth()->user()->hasPermission('markets_update');
     }
-   
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $user = auth()->user();
+    
+        $query = parent::getEloquentQuery();
+    
+        // فقط الإدمن نقوم بتصفية الأسواق بناء على صلاحياته
+        if ($user->role !== 'admin') {
+            return $query;
+        }
+    
+        $branchIds = $user->branches()->pluck('branches.id')->toArray();
+        $departmentIds = $user->departments()->pluck('departments.id')->toArray();
+    
+        return $query
+            ->when(!empty($branchIds), fn($q) => $q->whereIn('branch_id', $branchIds),
+                fn($q) => $q->where('branch_id', $user->branch_id)
+            )
+            ->when(!empty($departmentIds), fn($q) => $q->whereIn('department_id', $departmentIds),
+                fn($q) => $q->where('department_id', $user->department_id)
+            );
+    }
+    
 }

@@ -9,6 +9,7 @@ use App\Models\Department;
 use App\Models\User;
 use App\Models\Zone;
 use Filament\Forms;
+use Filament\Forms\Components\MultiSelect;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -114,6 +115,20 @@ class UserResource extends Resource
                     ->preload()
                     ->label('الصلاحيات')
                     ->searchable(),
+
+                    Select::make('branches')
+                    ->multiple()
+                    ->preload()
+                    ->relationship('branches', 'name') // مهم جدًا للربط التلقائي
+                    ->searchable()
+                    ->label('الفروع'),
+
+                    Select::make('departments')
+                    ->multiple()
+                    ->preload()
+                    ->relationship('departments', 'name') // مهم جدًا للربط التلقائي
+                    ->searchable()
+                    ->label('الأقسام'),
 
 
 

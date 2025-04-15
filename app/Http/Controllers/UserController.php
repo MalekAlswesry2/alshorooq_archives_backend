@@ -57,113 +57,8 @@ class UserController extends Controller
     ], 200);
 }
 
-    // public function getUsersWithUserRole()
-    // { 
-    //     if (!auth()->check()) {
-    //         return response()->json([
-    //             'error' => true,
-    //             'message' => 'You Are Not Authenticated',
-    //         ], 401);
-    //     }
 
-    //     // $users = User::where('role', 'user')->get(['id', 'name', 'email', 'phone', 'address', 'department']);
-    //     // $users = User::all(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role'])
-    //     // ->load('permissions:id,name,key');
-    //     $users = User::where('role', '!=' ,'master')->with('permissions:id,name,key')->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
-    //     $users->each(function ($user) {
-    //         $user->permissions->makeHidden('pivot');
-    //     });
-    
-        
-    //     if ($users->isEmpty()) {
-    //         return response()->json([
-    //             'message' => 'No users found with the "user" role',
-    //             'users' => $users,
-    //         ], 200);
-    //     }
-
-
-
-    //     // $users = $users->map(function ($user) {
-         
-    
-    //     //     $user['balance'] = (double)$user->balance;
-
-    //     //     return $user;
-    //     // });
-
-    //     return response()->json([
-    //         'message' => 'Users retrieved successfully',
-    //         'users' => $users,
-    //     ], 200);
-    // }
-    // public function getUsersWithReceiptsOrder()
-    // { 
-    //     if (!auth()->check()) {
-    //         return response()->json([
-    //             'error' => true,
-    //             'message' => 'You Are Not Authenticated',
-    //         ], 401);
-    //     }
-    
-    //     $users = User::where('role','user')->with([ 'receipts' => function ($query) {
-    //         $query->orderBy('created_at', 'desc')->limit(1);
-    //     }])->get(['id',  'phone', 'zone_id', 'role']);
-    
-    //     $users->each(function ($user) {
-    //         $user->permissions->makeHidden('pivot');
-    //     });
-    
-    //     $sortedUsers = $users->sortByDesc(function ($user) {
-    //         return optional($user->receipts->first())->created_at;
-    //     })->values();
-    
-    //     if ($sortedUsers->isEmpty()) {
-    //         return response()->json([
-    //             'message' => 'No users found with the "user" role',
-    //             'users' => $sortedUsers,
-    //         ], 200);
-    //     }
-    
-    //     return response()->json([
-    //         'message' => 'Users retrieved successfully',
-    //         'users' => $sortedUsers,
-    //     ], 200);
-    // }
-    // public function getUsersWithReceiptsOrder()
-    // {
-    //     if (!auth()->check()) {
-    //         return response()->json([
-    //             'error' => true,
-    //             'message' => 'You Are Not Authenticated',
-    //         ], 401);
-    //     }
-    
-    //     $users = User::where('role', 'user')->where('status', 'active')
-    //         ->withCount([
-    //             'receipts as receipts_not_received_count' => function ($query) {
-    //                 $query->where('status', 'not_received');
-    //             }
-    //         ])
-    //         ->with([
-    //             'receipts' => function ($query) {
-    //                 $query->latest()->limit(1)->select('id', 'user_id', 'created_at', 'status');
-    //             }
-    //         ])
-    //         ->orderByDesc(
-    //             Receipt::select('created_at')
-    //                 ->whereColumn('user_id', 'users.id')
-    //                 ->latest()
-    //                 ->limit(1)
-    //         )->get(['id', 'name', 'phone', 'zone_id', 'role']);
-    //         // ->get();
-    
-    //     return response()->json([
-    //         'message' => 'Users retrieved successfully',
-    //         'users' => $users,
-    //     ], 200);
-    // }
-    public function getUsersWithReceiptsOrder()
+public function getUsersWithReceiptsOrder()
 {
     if (!auth()->check()) {
         return response()->json([
@@ -174,7 +69,6 @@ class UserController extends Controller
 
     $admin = auth()->user();
 
-    // التحقق من أن المستخدم المسجل هو أدمن
     if ($admin->role !== 'admin') {
         return response()->json([
             'error' => true,
@@ -182,10 +76,28 @@ class UserController extends Controller
         ], 403);
     }
 
-    $users = User::where('role', 'user')
-        ->where('status', 'active')
-        ->where('department_id', $admin->department_id)
-        ->where('branch_id', $admin->branch_id)
+    // جلب الفروع والأقسام المخصصة لهذا المستخدم
+    $assignedBranchIds = $admin->branches()->pluck('branches.id')->toArray();
+    $assignedDepartmentIds = $admin->departments()->pluck('departments.id')->toArray();
+    
+
+    $usersQuery = User::where('role', 'user')
+        ->where('status', 'active');
+
+    // إذا لم يكن لدى المستخدم فروع/أقسام مخصصة، استخدم الفرع والقسم الأساسيين
+    if (!empty($assignedBranchIds)) {
+        $usersQuery->whereIn('branch_id', $assignedBranchIds);
+    } else {
+        $usersQuery->where('branch_id', $admin->branch_id);
+    }
+
+    if (!empty($assignedDepartmentIds)) {
+        $usersQuery->whereIn('department_id', $assignedDepartmentIds);
+    } else {
+        $usersQuery->where('department_id', $admin->department_id);
+    }
+
+    $users = $usersQuery
         ->withCount([
             'receipts as receipts_not_received_count' => function ($query) {
                 $query->where('status', 'not_received');
@@ -354,6 +266,30 @@ public function killTheToken($userId){
     ]);
 }
 
+
+public function assignBranches(Request $request, User $user)
+{
+    $request->validate([
+        'branch_ids' => 'required|array',
+        'branch_ids.*' => 'exists:branches,id',
+    ]);
+
+    $user->branches()->sync($request->branch_ids);
+
+    return response()->json(['message' => 'تم تعيين الفروع بنجاح']);
+}
+
+public function assignDepartments(Request $request, User $user)
+{
+    $request->validate([
+        'department_ids' => 'required|array',
+        'department_ids.*' => 'exists:departments,id',
+    ]);
+
+    $user->departments()->sync($request->department_ids);
+
+    return response()->json(['message' => 'تم تعيين الأقسام بنجاح']);
+}
 
 public function getTheToken($userId){
 

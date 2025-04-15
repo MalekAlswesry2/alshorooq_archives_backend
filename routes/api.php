@@ -123,6 +123,8 @@ Route::prefix('mobile')->group(function () {
         Route::put('/branches/{id}', [BranchController::class, 'update']);
         Route::delete('/branches/{id}', [BranchController::class, 'destroy']);
 
+        Route::post('/user/{user}/assign-branches', [UserController::class, 'assignBranches']);
+        Route::post('/user/{user}/assign-departments', [UserController::class, 'assignDepartments']);
         
         Route::get('/receipts/{id}/pdfs', [ReceiptController::class, 'printReceiptAsPDF']);
 
