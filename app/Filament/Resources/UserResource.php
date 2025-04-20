@@ -119,7 +119,6 @@ class UserResource extends Resource
                     })
                     ->searchable()
                     ->preload()
-                    ->required()
                     ->reactive(),
                 
 
