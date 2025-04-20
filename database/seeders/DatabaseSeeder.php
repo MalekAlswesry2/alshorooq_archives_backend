@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use AssignAllBranchesAndDepartmentsToMasterSeeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use PhpParser\Node\Expr\Assign;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,6 +18,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             PermissionSeeder::class,
+            // AssignAllBranchesAndDepartmentsToMasterSeeder::class,
             UserSeeder::class,
         ]);
     }
