@@ -14,6 +14,25 @@ class ZoneController extends Controller
         $zones = Zone::all();
         return response()->json(['zones' => $zones], 200);
     }
+    public function getZonesByBranch($branch_id)
+{
+    // التحقق من أن الفرع موجود
+    if (!\App\Models\Branch::where('id', $branch_id)->exists()) {
+        return response()->json([
+            'error' => true,
+            'message' => 'الفرع غير موجود',
+        ], 404);
+    }
+
+    // جلب خطوط السير المرتبطة بالفرع
+    $zones = \App\Models\Zone::where('branch_id', $branch_id)->get();
+
+    return response()->json([
+        'message' => 'تم جلب خطوط السير بنجاح',
+        'zones' => $zones,
+    ], 200);
+}
+
     // public function getZones(Request $request)
     // {
     //     $user = auth()->user();
