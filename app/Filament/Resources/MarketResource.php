@@ -158,10 +158,9 @@ class MarketResource extends Resource
                 ->label('رقم المنظومة')
 
                     ->searchable(),
-                Tables\Columns\TextColumn::make('role')
-                ->label('الدور')
-
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('branch.name')
+                ->label('الفرع')
+                ->searchable(),
                 // Tables\Columns\TextColumn::make('created_at')
                 //     ->dateTime()
                 //     ->sortable()
@@ -219,24 +218,20 @@ class MarketResource extends Resource
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $user = auth()->user();
-    
         $query = parent::getEloquentQuery();
     
-        // فقط الإدمن نقوم بتصفية الأسواق بناء على صلاحياته
-        if ($user->role !== 'admin') {
-            return $query;
+        if ($user->role === 'admin') {
+            $branchIds = $user->branches()->pluck('branches.id')->toArray();
+            $departmentIds = $user->departments()->pluck('departments.id')->toArray();
+    
+            return $query
+                ->when(!empty($branchIds), fn($q) => $q->whereIn('branch_id', $branchIds))
+                ->when(!empty($departmentIds), fn($q) => $q->whereIn('department_id', $departmentIds));
         }
     
-        $branchIds = $user->branches()->pluck('branches.id')->toArray();
-        $departmentIds = $user->departments()->pluck('departments.id')->toArray();
-    
-        return $query
-            ->when(!empty($branchIds), fn($q) => $q->whereIn('branch_id', $branchIds),
-                fn($q) => $q->where('branch_id', $user->branch_id)
-            )
-            ->when(!empty($departmentIds), fn($q) => $q->whereIn('department_id', $departmentIds),
-                fn($q) => $q->where('department_id', $user->department_id)
-            );
+        // للمندوب نعرض الأسواق الخاصة به فقط
+        return $query->where('user_id', $user->id);
     }
+    
     
 }

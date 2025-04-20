@@ -53,31 +53,18 @@ class UserResource extends Resource
                         ->required()
                         ->unique(ignoreRecord: true),
                     
-                    Select::make('branch_id')
-                    ->label('الفرع')
-                    ->options(Branch::all()->pluck('name', 'id'))
-                    ->searchable(),
+                    // Select::make('branch_id')
+                    // ->label('الفرع')
+                    // ->reactive() // مهم لتحديث القيم المرتبطة
+
+                    // ->options(Branch::all()->pluck('name', 'id'))
+                    // ->searchable(),
                     
-                    Select::make('department_id')
-                    ->label('القسم')
-                    ->options(Department::all()->pluck('name', 'id'))
-                    ->searchable(),
+                    // Select::make('department_id')
+                    // ->label('القسم')
+                    // ->options(Department::all()->pluck('name', 'id'))
+                    // ->searchable(),
 
-
-                    Select::make('zone_id')
-                    ->label('خط السير')
-                    ->options(Zone::all()->pluck('name', 'id'))
-                    ->searchable()
-                    ,
-
-
-                    // Forms\Components\Select::make('department')->required()->options([
-                    //     'all' => 'All',
-                    //     'alshoroq' => 'الشروق',
-                    //     'omalk' => 'العملاق',
-                    // ]),
-                // Forms\Components\TextInput::make('address')
-                //     ->maxLength(255),
 
                 Forms\Components\TextInput::make('role')
                     ->maxLength(255)
@@ -108,6 +95,42 @@ class UserResource extends Resource
                     ->default('active')
                     ->required()
                     ->visible(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\EditRecord),
+                    Select::make('branches')
+                    ->label('الفروع')
+                    ->multiple()
+                    ->required()
+                    ->preload()
+                    ->reactive()
+                    ->relationship('branches', 'name')
+                    ->afterStateUpdated(function (callable $set) {
+                        $set('zone_id', null); // إعادة تعيين خط السير عند تغيير الفروع
+                    }),
+                
+                Select::make('zone_id')
+                    ->label('خط السير')
+                    ->options(function (callable $get) {
+                        $branchIds = $get('branches');
+                
+                        if (!is_array($branchIds) || empty($branchIds)) {
+                            return [];
+                        }
+                
+                        return \App\Models\Zone::whereIn('branch_id', $branchIds)->pluck('name', 'id');
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->reactive(),
+                
+
+                    Select::make('departments')
+                    ->multiple()
+                    ->preload()
+                    ->required()
+                    ->relationship('departments', 'name') // مهم جدًا للربط التلقائي
+                    ->searchable()
+                    ->label('الأقسام'),
+
 
                     Select::make('permissions')
                     ->relationship('permissions', 'name')
@@ -116,19 +139,13 @@ class UserResource extends Resource
                     ->label('الصلاحيات')
                     ->searchable(),
 
-                    Select::make('branches')
-                    ->multiple()
-                    ->preload()
-                    ->relationship('branches', 'name') // مهم جدًا للربط التلقائي
-                    ->searchable()
-                    ->label('الفروع'),
-
-                    Select::make('departments')
-                    ->multiple()
-                    ->preload()
-                    ->relationship('departments', 'name') // مهم جدًا للربط التلقائي
-                    ->searchable()
-                    ->label('الأقسام'),
+                    // Select::make('branches')
+                    // ->label('الفروع')
+                    // ->multiple()
+                    // ->preload()
+                    // ->reactive()
+                    // ->options(\App\Models\Branch::all()->pluck('name', 'id'))
+                    // ->searchable(),
 
 
 
@@ -247,4 +264,57 @@ class UserResource extends Resource
     {
         return auth()->user()->hasPermission('users_view');
     }
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $user = auth()->user();
+    
+        $query = parent::getEloquentQuery()->where('role', '!=', 'master');
+    
+        // جلب الفروع والأقسام المرتبطة بالمستخدم
+        $branchIds = $user->branches()->pluck('branches.id')->toArray();
+        $departmentIds = $user->departments()->pluck('departments.id')->toArray();
+    
+        // fallback إلى الفرع والقسم الموجودين مباشرة في جدول users (للمستخدمين بدون تخصيص)
+        if (empty($branchIds)) {
+            $branchIds[] = $user->branch_id;
+        }
+        if (empty($departmentIds)) {
+            $departmentIds[] = $user->department_id;
+        }
+    
+        return $query->where(function ($q) use ($branchIds, $departmentIds) {
+            $q->whereHas('branches', function ($q2) use ($branchIds) {
+                $q2->whereIn('branches.id', $branchIds);
+            })
+            ->orWhereHas('departments', function ($q3) use ($departmentIds) {
+                $q3->whereIn('departments.id', $departmentIds);
+            })
+            // تشمل المستخدمين الذين لم يتم ربطهم بفروع أو أقسام ولكن لديهم قيم مباشرة
+            ->orWhere(function ($q4) use ($branchIds, $departmentIds) {
+                $q4->whereIn('branch_id', $branchIds)
+                   ->whereIn('department_id', $departmentIds);
+            });
+        });
+    }
+    
+    
+//     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+// {
+//     $user = auth()->user();
+
+//     $query = parent::getEloquentQuery()->where('role', '!=', 'master');
+
+//     // فقط للإدمن نطبق الفلترة
+//     if ($user->role !== 'admin') {
+//         return $query;
+//     }
+
+//     $branchIds = $user->branches()->pluck('branches.id')->toArray();
+//     $departmentIds = $user->departments()->pluck('departments.id')->toArray();
+
+//     return $query
+//         ->when(!empty($branchIds), fn($q) => $q->whereIn('branch_id', $branchIds), fn($q) => $q->where('branch_id', $user->branch_id))
+//         ->when(!empty($departmentIds), fn($q) => $q->whereIn('department_id', $departmentIds), fn($q) => $q->where('department_id', $user->department_id));
+// }
+
 }
