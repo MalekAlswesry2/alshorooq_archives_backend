@@ -264,37 +264,74 @@ class UserResource extends Resource
         return auth()->user()->hasPermission('users_view');
     }
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
-    {
-        $user = auth()->user();
-    
-        $query = parent::getEloquentQuery()->where('role', '!=', 'master');
-    
-        // جلب الفروع والأقسام المرتبطة بالمستخدم
-        $branchIds = $user->branches()->pluck('branches.id')->toArray();
-        $departmentIds = $user->departments()->pluck('departments.id')->toArray();
-    
-        // fallback إلى الفرع والقسم الموجودين مباشرة في جدول users (للمستخدمين بدون تخصيص)
-        if (empty($branchIds)) {
-            $branchIds[] = $user->branch_id;
-        }
-        if (empty($departmentIds)) {
-            $departmentIds[] = $user->department_id;
-        }
-    
-        return $query->where(function ($q) use ($branchIds, $departmentIds) {
-            $q->whereHas('branches', function ($q2) use ($branchIds) {
-                $q2->whereIn('branches.id', $branchIds);
-            })
-            ->orWhereHas('departments', function ($q3) use ($departmentIds) {
-                $q3->whereIn('departments.id', $departmentIds);
-            })
-            // تشمل المستخدمين الذين لم يتم ربطهم بفروع أو أقسام ولكن لديهم قيم مباشرة
-            ->orWhere(function ($q4) use ($branchIds, $departmentIds) {
-                $q4->whereIn('branch_id', $branchIds)
-                   ->whereIn('department_id', $departmentIds);
-            });
-        });
+{
+    $user = auth()->user();
+
+    // ✅ إذا كان Master، يرجع كل المستخدمين بدون فلترة
+    if ($user->role === 'master') {
+        return parent::getEloquentQuery()->where('role', '!=', 'master');
     }
+
+    $query = parent::getEloquentQuery()->where('role', '!=', 'master');
+
+    // جلب الفروع والأقسام المرتبطة بالمستخدم
+    $branchIds = $user->branches()->pluck('branches.id')->toArray();
+    $departmentIds = $user->departments()->pluck('departments.id')->toArray();
+
+    // fallback إلى الفرع والقسم الموجودين مباشرة في جدول users (للمستخدمين بدون تخصيص)
+    if (empty($branchIds)) {
+        $branchIds[] = $user->branch_id;
+    }
+    if (empty($departmentIds)) {
+        $departmentIds[] = $user->department_id;
+    }
+
+    return $query->where(function ($q) use ($branchIds, $departmentIds) {
+        $q->whereHas('branches', function ($q2) use ($branchIds) {
+            $q2->whereIn('branches.id', $branchIds);
+        })
+        ->orWhereHas('departments', function ($q3) use ($departmentIds) {
+            $q3->whereIn('departments.id', $departmentIds);
+        })
+        ->orWhere(function ($q4) use ($branchIds, $departmentIds) {
+            $q4->whereIn('branch_id', $branchIds)
+               ->whereIn('department_id', $departmentIds);
+        });
+    });
+}
+
+    // public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    // {
+    //     $user = auth()->user();
+    
+    //     $query = parent::getEloquentQuery()->where('role', '!=', 'master');
+    
+    //     // جلب الفروع والأقسام المرتبطة بالمستخدم
+    //     $branchIds = $user->branches()->pluck('branches.id')->toArray();
+    //     $departmentIds = $user->departments()->pluck('departments.id')->toArray();
+    
+    //     // fallback إلى الفرع والقسم الموجودين مباشرة في جدول users (للمستخدمين بدون تخصيص)
+    //     if (empty($branchIds)) {
+    //         $branchIds[] = $user->branch_id;
+    //     }
+    //     if (empty($departmentIds)) {
+    //         $departmentIds[] = $user->department_id;
+    //     }
+    
+    //     return $query->where(function ($q) use ($branchIds, $departmentIds) {
+    //         $q->whereHas('branches', function ($q2) use ($branchIds) {
+    //             $q2->whereIn('branches.id', $branchIds);
+    //         })
+    //         ->orWhereHas('departments', function ($q3) use ($departmentIds) {
+    //             $q3->whereIn('departments.id', $departmentIds);
+    //         })
+    //         // تشمل المستخدمين الذين لم يتم ربطهم بفروع أو أقسام ولكن لديهم قيم مباشرة
+    //         ->orWhere(function ($q4) use ($branchIds, $departmentIds) {
+    //             $q4->whereIn('branch_id', $branchIds)
+    //                ->whereIn('department_id', $departmentIds);
+    //         });
+    //     });
+    // }
     
     
 //     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
