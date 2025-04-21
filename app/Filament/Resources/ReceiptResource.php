@@ -98,6 +98,8 @@ class ReceiptResource extends Resource
                 TextColumn::make('bank.name')
                 ->label("المصرف"),
                 
+                TextColumn::make('branch.name')
+                ->label("الفرع"),
                 // TextColumn::make('payment_method')
                 // ->label("طريقة الدفع"),
                 // TextColumn::make('check_number')
@@ -216,4 +218,29 @@ class ReceiptResource extends Resource
     {
         return auth()->user()->hasPermission('receipts_view');
     }
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $user = auth()->user();
+        $query = parent::getEloquentQuery();
+    
+        // المستخدم العادي يرى فقط إيصالاته
+        if ($user->role === 'user') {
+            return $query->where('user_id', $user->id);
+        }
+    
+        // المسؤول يرى حسب الفروع والأقسام المربوطة به
+        if ($user->role === 'admin') {
+            $branchIds = $user->branches()->pluck('branches.id')->toArray();
+            $departmentIds = $user->departments()->pluck('departments.id')->toArray();
+    
+            return $query
+                ->when(!empty($branchIds), fn($q) => $q->whereIn('branch_id', $branchIds))
+                ->when(!empty($departmentIds), fn($q) => $q->whereIn('department_id', $departmentIds));
+        }
+    
+        // أي دور آخر (مثلاً master) يرى كل شيء
+        return $query;
+    }
+    
+
 }

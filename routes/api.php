@@ -96,6 +96,7 @@ Route::prefix('mobile')->group(function () {
 
         Route::post('/zones', [ZoneController::class, 'store']);
         Route::get('/areas_on_zone', [AreaController::class, 'getAreasDebOnZone']);
+        Route::get('/zones/by-branch/{branch_id}', [ZoneController::class, 'getZonesByBranch']);
 
 
         // Route::get('/areas', [AreaController::class, 'allAreas']);
@@ -123,6 +124,8 @@ Route::prefix('mobile')->group(function () {
         Route::put('/branches/{id}', [BranchController::class, 'update']);
         Route::delete('/branches/{id}', [BranchController::class, 'destroy']);
 
+        Route::post('/user/{user}/assign-branches', [UserController::class, 'assignBranches']);
+        Route::post('/user/{user}/assign-departments', [UserController::class, 'assignDepartments']);
         
         Route::get('/receipts/{id}/pdfs', [ReceiptController::class, 'printReceiptAsPDF']);
 

@@ -51,6 +51,7 @@ class BankResource extends Resource
         ->columns([
             TextColumn::make('name')->label("اسم المصرف"),
             TextColumn::make('account_number')->label("رقم الحساب"),
+            TextColumn::make('branch.name')->label("اسم الفرع"),
         ])
             ->filters([
                 SelectFilter::make('branch')->relationship('branch', 'name')->label("الفرع"),
@@ -87,4 +88,20 @@ class BankResource extends Resource
     {
         return auth()->user()->hasPermission('banks_view');
     }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $user = auth()->user();
+        $query = parent::getEloquentQuery();
+    
+        if ($user->role === 'admin') {
+            $branchIds = $user->branches()->pluck('branches.id')->toArray();
+    
+            return $query->when(!empty($branchIds), fn($q) => $q->whereIn('branch_id', $branchIds));
+        }
+    
+        // في حالة المستخدم العادي (user) نظهر له كل شيء أو حسب ما تحدده أنت
+        return $query;
+    }
+    
 }

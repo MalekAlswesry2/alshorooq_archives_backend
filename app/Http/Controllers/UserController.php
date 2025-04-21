@@ -15,152 +15,215 @@ class UserController extends Controller
     /**
      * عرض جميع المستخدمين الذين لديهم دور user.
      */
-    public function getUsersWithUserRole()
-    { 
-        if (!auth()->check()) {
-            return response()->json([
-                'error' => true,
-                'message' => 'You Are Not Authenticated',
-            ], 401);
-        }
 
-        // $users = User::where('role', 'user')->get(['id', 'name', 'email', 'phone', 'address', 'department']);
-        // $users = User::all(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role'])
-        // ->load('permissions:id,name,key');
-        $users = User::where('role', '!=' ,'master')->with('permissions:id,name,key')->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
-        $users->each(function ($user) {
-            $user->permissions->makeHidden('pivot');
-        });
-    
-        
-        if ($users->isEmpty()) {
-            return response()->json([
-                'message' => 'No users found with the "user" role',
-                'users' => $users,
-            ], 200);
-        }
+//      public function getUsersWithUserRole()
+// { 
+//     if (!auth()->check()) {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'You Are Not Authenticated',
+//         ], 401);
+//     }
 
+//     $admin = auth()->user();
 
+//     if ($admin->role !== 'admin') {
+//         return response()->json([
+//             'error' => true,
+//             'message' => 'Unauthorized. Only admin can access this.',
+//         ], 403);
+//     }
 
-        // $users = $users->map(function ($user) {
-         
-    
-        //     $user['balance'] = (double)$user->balance;
+//     $users = User::where('role', '!=', 'master')
+//         ->where('department_id', $admin->department_id)
+//         ->where('branch_id', $admin->branch_id)
+//         ->with('permissions:id,name,key')
+//         ->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
 
-        //     return $user;
-        // });
+//     $users->each(function ($user) {
+//         $user->permissions->makeHidden('pivot');
+//     });
 
+//     if ($users->isEmpty()) {
+//         return response()->json([
+//             'message' => 'No users found in your department and branch',
+//             'users' => $users,
+//         ], 200);
+//     }
+
+//     return response()->json([
+//         'message' => 'Users retrieved successfully',
+//         'users' => $users,
+//     ], 200);
+// }
+public function getUsersWithUserRole()
+{
+    if (!auth()->check()) {
         return response()->json([
-            'message' => 'Users retrieved successfully',
-            'users' => $users,
-        ], 200);
+            'error' => true,
+            'message' => 'You Are Not Authenticated',
+        ], 401);
     }
-    // public function getUsersWithReceiptsOrder()
-    // { 
-    //     if (!auth()->check()) {
-    //         return response()->json([
-    //             'error' => true,
-    //             'message' => 'You Are Not Authenticated',
-    //         ], 401);
-    //     }
-    
-    //     $users = User::where('role','user')->with([ 'receipts' => function ($query) {
-    //         $query->orderBy('created_at', 'desc')->limit(1);
-    //     }])->get(['id',  'phone', 'zone_id', 'role']);
-    
-    //     $users->each(function ($user) {
-    //         $user->permissions->makeHidden('pivot');
-    //     });
-    
-    //     $sortedUsers = $users->sortByDesc(function ($user) {
-    //         return optional($user->receipts->first())->created_at;
-    //     })->values();
-    
-    //     if ($sortedUsers->isEmpty()) {
-    //         return response()->json([
-    //             'message' => 'No users found with the "user" role',
-    //             'users' => $sortedUsers,
-    //         ], 200);
-    //     }
-    
-    //     return response()->json([
-    //         'message' => 'Users retrieved successfully',
-    //         'users' => $sortedUsers,
-    //     ], 200);
-    // }
-    public function getUsersWithReceiptsOrder()
-    {
-        if (!auth()->check()) {
-            return response()->json([
-                'error' => true,
-                'message' => 'You Are Not Authenticated',
-            ], 401);
-        }
-    
-        $users = User::where('role', 'user')
-            ->withCount([
-                'receipts as receipts_not_received_count' => function ($query) {
-                    $query->where('status', 'not_received');
-                }
-            ])
-            ->with([
-                'receipts' => function ($query) {
-                    $query->latest()->limit(1)->select('id', 'user_id', 'created_at', 'status');
-                }
-            ])
-            ->orderByDesc(
-                Receipt::select('created_at')
-                    ->whereColumn('user_id', 'users.id')
-                    ->latest()
-                    ->limit(1)
-            )->get(['id', 'name', 'phone', 'zone_id', 'role']);
-            // ->get();
-    
+
+    $admin = auth()->user();
+
+    if ($admin->role !== 'admin') {
         return response()->json([
-            'message' => 'Users retrieved successfully',
-            'users' => $users,
-        ], 200);
+            'error' => true,
+            'message' => 'Unauthorized. Only admin can access this.',
+        ], 403);
     }
-    
+
+    // جلب الفروع والأقسام المرتبطة بالمشرف من الجداول الوسيطة
+    $branchIds = $admin->branches()->pluck('branches.id')->toArray();
+    $departmentIds = $admin->departments()->pluck('departments.id')->toArray();
+
+    // في حال لم يتم تحديدها من الجداول الوسيطة نرجع للقيم الفردية
+    if (empty($branchIds) && $admin->branch_id) {
+        $branchIds[] = $admin->branch_id;
+    }
+
+    if (empty($departmentIds) && $admin->department_id) {
+        $departmentIds[] = $admin->department_id;
+    }
+
+    // جلب المستخدمين المرتبطين بهذه الفروع أو الأقسام
+    $users = User::where('role', '!=', 'master')
+        ->where(function ($query) use ($branchIds, $departmentIds) {
+            $query->whereIn('branch_id', $branchIds)
+                  ->whereIn('department_id', $departmentIds);
+        })
+        ->with('permissions:id,name,key')
+        ->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
+
+    // إزالة الـ pivot
+    $users->each(fn($user) => $user->permissions->makeHidden('pivot'));
+
+    return response()->json([
+        'message' => 'Users retrieved successfully',
+        'users' => $users,
+    ], 200);
+}
+
+
+
+public function getUsersWithReceiptsOrder()
+{
+    if (!auth()->check()) {
+        return response()->json([
+            'error' => true,
+            'message' => 'You Are Not Authenticated',
+        ], 401);
+    }
+
+    $admin = auth()->user();
+
+    if ($admin->role !== 'admin') {
+        return response()->json([
+            'error' => true,
+            'message' => 'Unauthorized. Only admin can access this.',
+        ], 403);
+    }
+
+    // جلب الفروع والأقسام المخصصة من خلال الجداول الوسيطة
+    $branchIds = $admin->branches()->pluck('branches.id')->toArray();
+    $departmentIds = $admin->departments()->pluck('departments.id')->toArray();
+
+    // fallback في حال لم تُخصص الفروع أو الأقسام
+    if (empty($branchIds) && $admin->branch_id) {
+        $branchIds[] = $admin->branch_id;
+    }
+
+    if (empty($departmentIds) && $admin->department_id) {
+        $departmentIds[] = $admin->department_id;
+    }
+
+    $users = User::where('role', 'user')
+        ->where('status', 'active')
+        ->whereIn('branch_id', $branchIds)
+        ->whereIn('department_id', $departmentIds)
+        ->withCount([
+            'receipts as receipts_not_received_count' => function ($query) {
+                $query->where('status', 'not_received');
+            }
+        ])
+        ->with([
+            'receipts' => function ($query) {
+                $query->latest()->limit(1)->select('id', 'user_id', 'created_at', 'status');
+            }
+        ])
+        ->orderByDesc(
+            Receipt::select('created_at')
+                ->whereColumn('user_id', 'users.id')
+                ->latest()
+                ->limit(1)
+        )
+        ->get(['id', 'name', 'phone', 'zone_id', 'role']);
+
+    return response()->json([
+        'message' => 'Users retrieved successfully',
+        'users' => $users,
+    ], 200);
+}
+
     
 
-    public function addAdmin(Request $request)
-    {
-        // التحقق من البيانات المدخلة
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'required|string|unique:users,phone|max:15',
-            'department_id' => 'required|exists:departments,id',
-            'branch_id' => 'required|exists:branches,id',
-            'permissions' => 'nullable|array|exists:permissions,id', // تأكد من أن الصلاحيات تُرسل كمصفوفة
-            // 'permissions.*' => 'exists:permissions,id' // تأكد من أن كل ID موجود في جدول الصلاحيات
-        ], [
-            'permissions.*.exists' => 'The selected permission is invalid.',
-            'name.required' => 'الاسم مطلوب',
-        ]);
-    
-        // إنشاء المسؤول الجديد
-        $admin = User::create([
-            'name' => $validatedData['name'],
-            'email' => $validatedData['email'],
-            'phone' => $validatedData['phone'],
-            'department_id' => $validatedData['department_id'],
-            'branch_id' => $validatedData['branch_id'],
-            'password' => Hash::make('12345678'), // كلمة مرور افتراضية يمكن تغييرها لاحقًا
-            'role' => 'admin', // الدور يحدد كـ admin تلقائيًا
-        ]);
-    
-        // إرفاق الصلاحيات إذا تم إرسالها مع الطلب
-        if (!empty($validatedData['permissions'])) {
-            $admin->permissions()->sync($validatedData['permissions']);
+public function addAdmin(Request $request)
+{
+    $validatedData = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'phone' => 'required|string|unique:users,phone|max:15',
+        'department_id' => 'required|exists:departments,id',
+        'branch_id' => 'required|exists:branches,id',
 
-        }
-        return response()->json([
-            'message' => 'تم اضافة المسؤول بنجاح',
-            'admin' => $admin,
-        ], 200);
+        'permissions' => 'nullable|array',
+        'permissions.*' => 'exists:permissions,id',
+
+        'branches' => 'nullable|array',
+        'branches.*' => 'exists:branches,id',
+
+        'departments' => 'nullable|array',
+        'departments.*' => 'exists:departments,id',
+    ], [
+        'name.required' => 'الاسم مطلوب',
+        'permissions.*.exists' => 'صلاحية غير صالحة',
+        'branches.*.exists' => 'فرع غير صالح',
+        'departments.*.exists' => 'قسم غير صالح',
+    ]);
+
+    // إنشاء المستخدم
+    $admin = User::create([
+        'name' => $validatedData['name'],
+        'email' => $validatedData['email'],
+        'phone' => $validatedData['phone'],
+        'department_id' => $validatedData['department_id'],
+        'branch_id' => $validatedData['branch_id'],
+        'password' => Hash::make('12345678'),
+        'role' => 'admin',
+    ]);
+
+    // إرفاق الصلاحيات إن وُجدت
+    if (!empty($validatedData['permissions'])) {
+        $admin->permissions()->sync($validatedData['permissions']);
     }
+
+    // إرفاق الفروع من الجدول الوسيط
+    if (!empty($validatedData['branches'])) {
+        $admin->branches()->sync($validatedData['branches']);
+    }
+
+    // إرفاق الأقسام من الجدول الوسيط
+    if (!empty($validatedData['departments'])) {
+        $admin->departments()->sync($validatedData['departments']);
+    }
+
+    return response()->json([
+        'message' => 'تم إضافة المسؤول بنجاح مع الصلاحيات والفروع والأقسام',
+        'admin' => $admin,
+    ], 200);
+}
+
 
     // ربط ملف الببلك
     // public function createStorageLink()
@@ -266,6 +329,30 @@ public function killTheToken($userId){
     ]);
 }
 
+
+public function assignBranches(Request $request, User $user)
+{
+    $request->validate([
+        'branch_ids' => 'required|array',
+        'branch_ids.*' => 'exists:branches,id',
+    ]);
+
+    $user->branches()->sync($request->branch_ids);
+
+    return response()->json(['message' => 'تم تعيين الفروع بنجاح']);
+}
+
+public function assignDepartments(Request $request, User $user)
+{
+    $request->validate([
+        'department_ids' => 'required|array',
+        'department_ids.*' => 'exists:departments,id',
+    ]);
+
+    $user->departments()->sync($request->department_ids);
+
+    return response()->json(['message' => 'تم تعيين الأقسام بنجاح']);
+}
 
 public function getTheToken($userId){
 

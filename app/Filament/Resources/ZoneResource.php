@@ -6,6 +6,7 @@ use App\Filament\Resources\ZoneResource\Pages;
 use App\Filament\Resources\ZoneResource\RelationManagers;
 use App\Models\Zone;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -37,6 +38,13 @@ class ZoneResource extends Resource
                     ->required()
                     ->label("كود خط السير")
                     ->maxLength(255),
+                    Select::make('branch_id')
+                    ->label('الفرع ')
+                    ->relationship('branch', 'name')
+                    ->preload()
+                    ->searchable()
+                    ->required(),
+
             ]);
     }
 
@@ -50,7 +58,10 @@ class ZoneResource extends Resource
                 Tables\Columns\TextColumn::make('code')
                 ->label("كود خط السير")
                     ->searchable(),
-
+                    Tables\Columns\TextColumn::make('branch.name')
+                    ->label("الفرع")
+                        ->searchable(),
+    
             ])
             ->filters([
                 //
@@ -85,5 +96,44 @@ class ZoneResource extends Resource
     {
         return auth()->user()->hasPermission('zones_view');
     }
+
+//     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+// {
+//     $user = auth()->user();
+
+//     $query = parent::getEloquentQuery();
+
+//     // فقط للإدمن نفعّل الفلترة
+//     if ($user->role !== 'admin') {
+//         return $query;
+//     }
+
+//     $branchIds = $user->branches()->pluck('branches.id')->toArray();
+//     $departmentIds = $user->departments()->pluck('departments.id')->toArray();
+//     $zoneIds = $user->zones()->pluck('zones.id')->toArray(); // يجب أن تكون علاقة zones موجودة
+
+//     return $query
+//         ->when(!empty($branchIds), fn($q) => $q->whereIn('branch_id', $branchIds),
+//             fn($q) => $q->where('branch_id', $user->branch_id)
+//         )
+//         ->when(!empty($departmentIds), fn($q) => $q->whereIn('department_id', $departmentIds),
+//             fn($q) => $q->where('department_id', $user->department_id)
+//         )
+//         ->when(!empty($zoneIds), fn($q) => $q->whereIn('zone_id', $zoneIds),
+//             fn($q) => $q->where('zone_id', $user->zone_id)
+//         );
+// }
+public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+{
+    $user = auth()->user();
+    $query = parent::getEloquentQuery();
+
+    if ($user->role === 'admin') {
+        $branchIds = $user->branches()->pluck('branches.id')->toArray();
+        return $query->whereIn('branch_id', $branchIds);
+    }
+
+    return $query->where('branch_id', $user->branch_id);
+}
 
 }

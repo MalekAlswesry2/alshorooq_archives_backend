@@ -158,10 +158,9 @@ class MarketResource extends Resource
                 ->label('رقم المنظومة')
 
                     ->searchable(),
-                Tables\Columns\TextColumn::make('role')
-                ->label('الدور')
-
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('branch.name')
+                ->label('الفرع')
+                ->searchable(),
                 // Tables\Columns\TextColumn::make('created_at')
                 //     ->dateTime()
                 //     ->sortable()
@@ -216,5 +215,23 @@ class MarketResource extends Resource
     {
         return auth()->user()->hasPermission('markets_update');
     }
-   
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $user = auth()->user();
+        $query = parent::getEloquentQuery();
+    
+        if ($user->role === 'admin') {
+            $branchIds = $user->branches()->pluck('branches.id')->toArray();
+            $departmentIds = $user->departments()->pluck('departments.id')->toArray();
+    
+            return $query
+                ->when(!empty($branchIds), fn($q) => $q->whereIn('branch_id', $branchIds))
+                ->when(!empty($departmentIds), fn($q) => $q->whereIn('department_id', $departmentIds));
+        }
+    
+        // للمندوب نعرض الأسواق الخاصة به فقط
+        return $query->where('user_id', $user->id);
+    }
+    
+    
 }

@@ -55,6 +55,11 @@ class User extends Authenticatable implements FilamentUser
 
     ];
 
+    //     public function zones()
+    // {
+    //     return $this->belongsToMany(Zone::class);
+    // }
+
     public function zone()
     {
         return $this->belongsTo(Zone::class);
@@ -68,7 +73,15 @@ class User extends Authenticatable implements FilamentUser
         {
             return $this->belongsTo(Branch::class);
         }
-
+        public function branches()
+        {
+            return $this->belongsToMany(Branch::class);
+        }
+        
+        public function departments()
+        {
+            return $this->belongsToMany(Department::class);
+        }
     public function permissions()
     {
         return $this->belongsToMany(Permission::class, 'user_permissions');
@@ -90,6 +103,7 @@ public function receipts()
 {
     return $this->hasMany(Receipt::class, 'user_id');
 }
+
 
 
 public function canAccessPanel(Panel $panel): bool
