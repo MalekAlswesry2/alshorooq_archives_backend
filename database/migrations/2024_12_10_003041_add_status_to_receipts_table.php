@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('receipts', function (Blueprint $table) {
-            $table->enum('status', ['received', 'not_received'])->default('not_received')->after('image');
+            $table->enum('status', ['received', 'not_received', 'canceled'])->default('not_received')->after('image');
         });
     }
 

@@ -18,7 +18,8 @@ return new class extends Migration
             $table->id();
             $table->string('name'); // الاسم
             $table->string('phone')->unique()->nullable(); // رقم الهاتف
-            $table->string('address')->nullable(); // خد السير
+            // $table->string('address')->nullable(); // خد السير
+            $table->unsignedBigInteger('zone_id')->nullable();
             $table->string('status')->default('active');
             $table->string('role')->nullable(); // 
             $table->string('email')->unique(); // الإيميل

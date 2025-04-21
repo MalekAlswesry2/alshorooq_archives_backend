@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('zone_id')->nullable();
-            $table->foreign('zone_id')->references('id')->on('zones')->onDelete('cascade');
-            $table->dropColumn('address');
-        });
+        // Schema::table('users', function (Blueprint $table) {
+        //     $table->unsignedBigInteger('zone_id')->nullable();
+        //     $table->foreign('zone_id')->references('id')->on('zones')->onDelete('cascade');
+        //     $table->dropColumn('address');
+        // });
     }
 
     /**
@@ -23,10 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['zone_id']);
-            $table->dropColumn('zone_id');
-            $table->string('address')->nullable();
-        });
+        // Schema::table('users', function (Blueprint $table) {
+        //     $table->dropForeign(['zone_id']);
+        //     $table->dropColumn('zone_id');
+        //     $table->string('address')->nullable();
+        // });
     }
 };
