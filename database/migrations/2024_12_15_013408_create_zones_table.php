@@ -13,12 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        // Schema::create('zones', function (Blueprint $table) {
-        //     $table->id();
-        //     $table->string('name'); // اسم المنطقة
-        //     $table->string('code')->unique(); 
-        //     $table->timestamps();
-        // });
+        Schema::create('zones', function (Blueprint $table) {
+            $table->id();
+            $table->string('name'); // اسم المنطقة
+            $table->string('code')->unique(); 
+            $table->timestamps();
+        });
     }
 
     /**
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        // Schema::dropIfExists('zones');
+        Schema::dropIfExists('zones');
     }
 };
