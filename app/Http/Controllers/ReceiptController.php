@@ -44,10 +44,10 @@ public function getReceipts(Request $request, $userId = null)
     if ($request->has('from') && $request->has('to')) {
         $from = $request->input('from') . ' 00:00:00';
         $to = $request->input('to') . ' 23:59:59';
-    
+
         $query->whereBetween('created_at', [$from, $to]);
     }
-    
+
     if ($request->has('user')) {
         $query->where('user_id', $request->input('user'));
     }
@@ -58,7 +58,7 @@ public function getReceipts(Request $request, $userId = null)
         $query->where('payment_method', $request->input('payment_methods'));
     }
     if ($request->has('status')) {
-        
+
         $query->where('status', $request->input('status'));
     }
 
@@ -98,7 +98,7 @@ public function getReceipts(Request $request, $userId = null)
 
     return response()->json([
         'message'  => 'Receipts retrieved successfully',
-        'receipts' => $receipts->items(), 
+        'receipts' => $receipts->items(),
         'meta'     => [
             'current_page' => $receipts->currentPage(),
             'total'        => $receipts->total(),
@@ -140,7 +140,7 @@ public function store(Request $request)
             'bank_id' => 'nullable|exists:banks,id|required_if:payment_method,transfer',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:8096',
         ]);
-        $validated['role'] = $user->role;  
+        $validated['role'] = $user->role;
         $validated['user_id'] = $request->input('user_id');
         $selectedUserId = $validated['user_id'];
         $selectedUser = User::find($selectedUserId);
@@ -154,7 +154,7 @@ public function store(Request $request)
 
         $department = $selectedUser->department;
         $branch = $selectedUser->branch;
-        
+
         if (!$department || !$branch) {
             return response()->json([
                 'error' => true,
@@ -163,7 +163,7 @@ public function store(Request $request)
         }
         $validated['department_id'] = $department->id;
         $validated['branch_id'] = $branch->id;
-        $validated['role'] = $user->role;  
+        $validated['role'] = $user->role;
 
     } elseif ($user->role === 'user') {
         $validated = $request->validate([
@@ -241,13 +241,12 @@ public function store(Request $request)
         "تم إضافة إيصال جديد بواسطة {$user->name}",
         $user->id
     );
-    
+
     return response()->json([
         'message' => 'تم إضافة الإيصال بنجاح',
         'receipt' => $receipt,
     ], 200);
 }
-
 
 public function updateStatus(Request $request)
 {
@@ -260,7 +259,6 @@ public function updateStatus(Request $request)
 
     $admin = auth()->user();
 
-    // التحقق إذا كان المستخدم الحالي هو أدمن
     if ($admin->role !== 'admin') {
         return response()->json([
             'error' => true,
@@ -268,16 +266,13 @@ public function updateStatus(Request $request)
         ], 403);
     }
 
-    // التحقق من البيانات
     $validated = $request->validate([
-        'barcode' => 'required|string', // الباركود
-        'system_receipt_number' => 'required|string|max:255|unique:receipts,system_receipt_number',
+        'barcode' => 'required|string',
+        'system_receipt_number' => 'required|string|max:255',
     ]);
 
-    // استخراج الباركود
     $barcode = $validated['barcode'];
 
-    // التحقق من تنسيق الباركود
     if (!str_contains($barcode, '-')) {
         return response()->json([
             'error' => true,
@@ -285,10 +280,8 @@ public function updateStatus(Request $request)
         ], 400);
     }
 
-    // تقسيم الباركود للحصول على id و custom_id
     [$id, $customId] = explode('-', $barcode);
 
-    // التحقق من صحة الأجزاء
     if (!is_numeric($id) || empty($customId)) {
         return response()->json([
             'error' => true,
@@ -296,7 +289,6 @@ public function updateStatus(Request $request)
         ], 400);
     }
 
-    // التحقق من الواصل
     $receipt = Receipt::where('id', $id)
         ->where('custom_id', $customId)
         ->first();
@@ -315,11 +307,22 @@ public function updateStatus(Request $request)
         ], 400);
     }
 
+    // ✅ تحقق من uniqueness داخل نفس القسم والفرع
+    $exists = Receipt::where('system_receipt_number', $validated['system_receipt_number'])
+        ->where('department_id', $receipt->department_id)
+        ->where('branch_id', $receipt->branch_id)
+        ->exists();
 
-    // تحديث حالة الواصل
+    if ($exists) {
+        return response()->json([
+            'error' => true,
+            'message' => 'الرقم موجود مسبقا في القسم او الفرع الخاص بك',
+        ], 422);
+    }
+
     $receipt->update([
         'system_receipt_number' => $validated['system_receipt_number'],
-        'admin_id' => $admin->id,      
+        'admin_id' => $admin->id,
         'status' => 'received',
     ]);
 
@@ -330,10 +333,13 @@ public function updateStatus(Request $request)
     );
 
     return response()->json([
-        'message' => 'Receipt status updated successfully',
+        'message' => 'تم استلام الواصل بنجاح',
         'receipt' => $receipt,
     ], 200);
 }
+
+
+
 
 public function cancelReceipt($receiptId)
 {
@@ -392,5 +398,5 @@ public function printReceiptAsPDF($receiptId)
 
 }
 
-    
+
 }

@@ -14,12 +14,18 @@ class Market extends Model
         'user_id',
         'address',
         'system_market_number',
-        'status',  
+        'status',
         'branch_id',
         'department_id',
         'area_id'
     ];
 
+protected $casts = [
+    'id' => 'integer',
+    'user_id' => 'integer',
+    'branch_id' => 'integer',
+    'department_id' => 'integer',
+];
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -37,3 +43,4 @@ public function area()
     return $this->belongsTo(Area::class);
 }
 }
+

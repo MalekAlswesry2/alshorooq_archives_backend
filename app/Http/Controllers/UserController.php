@@ -17,7 +17,7 @@ class UserController extends Controller
      */
 
 //      public function getUsersWithUserRole()
-// { 
+// {
 //     if (!auth()->check()) {
 //         return response()->json([
 //             'error' => true,
@@ -162,11 +162,13 @@ public function getUsersWithReceiptsOrder()
 
     return response()->json([
         'message' => 'Users retrieved successfully',
-        'users' => $users,
-    ], 200);
+    'users' => $users->map(function ($user) {
+        $user->receipts_not_received_count = (int) $user->receipts_not_received_count;
+        return $user;
+    }),    ], 200);
 }
 
-    
+
 
 public function addAdmin(Request $request)
 {
@@ -248,24 +250,24 @@ public function addAdmin(Request $request)
         ], 200);
     }
 
-    
+
     public function assignPermission(Request $request, $userId)
     {
         // التأكد من أن البيانات المرسلة صحيحة
         if (!$request->has('permissions') || !is_array($request->permissions)) {
             return response()->json(['error' => 'يجب إرسال قائمة بالصلاحيات'], 400);
         }
-    
+
         $user = User::findOrFail($userId);
-    
+
         // جلب كل الصلاحيات المحددة في الطلب
         $permissions = Permission::whereIn('id', $request->permissions)->pluck('id')->toArray();
-    
+
         // التحقق من وجود صلاحيات صالحة
         if (empty($permissions)) {
             return response()->json(['error' => 'لم يتم العثور على أي صلاحية'], 404);
         }
-    
+
         // مزامنة الصلاحيات: إزالة غير المحددة وإضافة الجديدة
         $user->permissions()->sync($permissions);
         $this->killTheToken($userId);
@@ -275,8 +277,8 @@ public function addAdmin(Request $request)
             'assigned_permissions' => $permissions
         ], 200);
     }
-    
-    
+
+
 
 
 public function removePermission(Request $request, $userId)
@@ -298,7 +300,7 @@ public function checkUserPermissions($userId)
     $user = User::findOrFail($userId);
 
     $permissions = $user->permissions;
-    
+
     $permissions->each(function ($permission) {
         unset($permission->pivot);
         unset($permission->created_at);
@@ -323,7 +325,7 @@ public function killTheToken($userId){
     $user->tokens->each(function ($token, $key) {
         $token->delete();
     });
-    
+
     return response()->json([
         'message' => 'تم تسجيل الخروج بنجاح'
     ]);
@@ -364,7 +366,7 @@ public function getTheToken($userId){
     // });
 
     //  $userToken = Auth::token();;
-   
+
     return  $user->tokens;
 }
 
