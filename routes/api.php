@@ -128,6 +128,7 @@ Route::prefix('mobile')->group(function () {
         Route::post('/user/{user}/assign-departments', [UserController::class, 'assignDepartments']);
         
         Route::get('/receipts/{id}/pdfs', [ReceiptController::class, 'printReceiptAsPDF']);
+        Route::get('/user/stats', [UserController::class, 'getUserDashboardStats']);
 
     // Route::get('/user/permissions', function () {
     //     return response()->json([

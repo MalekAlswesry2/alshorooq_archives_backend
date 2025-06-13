@@ -369,5 +369,30 @@ public function getTheToken($userId){
 
     return  $user->tokens;
 }
+public function getUserDashboardStats()
+{
+    if (!auth()->check()) {
+        return response()->json([
+            'error' => true,
+            'message' => 'You Are Not Authenticated',
+        ], 401);
+    }
+
+    $user = auth()->user();
+
+    $receiptsCount = Receipt::where('user_id', $user->id)
+        ->where('status', 'not_received')
+        ->count();
+
+    $appointmentsCount = 5;
+
+    return response()->json([
+        'message' => 'User dashboard stats retrieved successfully',
+        'data' => [
+            'receipts_not_received_count' => $receiptsCount,
+            'appointments_count' => $appointmentsCount,
+        ],
+    ], 200);
+}
 
 }
