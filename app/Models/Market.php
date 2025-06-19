@@ -42,5 +42,10 @@ public function area()
 {
     return $this->belongsTo(Area::class);
 }
+public function appointments()
+{
+    return $this->hasMany(Appointment::class);
+}
+
 }
 

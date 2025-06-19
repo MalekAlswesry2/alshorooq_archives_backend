@@ -104,6 +104,10 @@ public function receipts()
     return $this->hasMany(Receipt::class, 'user_id');
 }
 
+public function appointments()
+{
+    return $this->hasMany(Appointment::class);
+}
 
 
 public function canAccessPanel(Panel $panel): bool

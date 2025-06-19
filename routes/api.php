@@ -11,6 +11,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AppointmentController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -129,6 +130,12 @@ Route::prefix('mobile')->group(function () {
         
         Route::get('/receipts/{id}/pdfs', [ReceiptController::class, 'printReceiptAsPDF']);
         Route::get('/user/stats', [UserController::class, 'getUserDashboardStats']);
+
+
+        Route::get('/appointments', [AppointmentController::class, 'index']);
+        Route::post('/appointments', [AppointmentController::class, 'store']);
+        Route::put('/appointments/{id}/update-status', [AppointmentController::class, 'updateStatus']);
+        Route::put('/appointments/{id}', [AppointmentController::class, 'cancelAppointment']);
 
     // Route::get('/user/permissions', function () {
     //     return response()->json([
