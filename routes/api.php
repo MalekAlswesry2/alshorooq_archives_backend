@@ -134,6 +134,7 @@ Route::prefix('mobile')->group(function () {
 
         Route::get('/appointments', [AppointmentController::class, 'index']);
         Route::post('/appointments', [AppointmentController::class, 'store']);
+        Route::get('/appointments/{user_id}', [AppointmentController::class, 'getUserAppointments']);
         Route::put('/appointments/{id}/update-status', [AppointmentController::class, 'updateStatus']);
         Route::put('/appointments/{id}', [AppointmentController::class, 'cancelAppointment']);
 

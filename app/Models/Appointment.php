@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Enums\AppointmentStatus;
+
 
 class Appointment extends Model
 {
@@ -16,6 +18,7 @@ class Appointment extends Model
     ];
     protected $casts = [
         'scheduled_at' => 'datetime',
+        'status' => AppointmentStatus::class,
     ];    
 
     use HasFactory;
@@ -29,5 +32,26 @@ public function market()
 {
     return $this->belongsTo(Market::class);
 }
+
+public function getStatusObjectAttribute(): array
+    {
+        $actualStatus = $this->status;
+
+    if (
+        $actualStatus === AppointmentStatus::Upcoming &&
+        $this->scheduled_at->isBefore(now()->subHours(24))
+    ) {
+        $actualStatus = AppointmentStatus::NotCompleted;
+    }
+
+    return [
+        'key' => $actualStatus->value,
+        'label' => $actualStatus->label(),
+    ];
+        // return [
+        //     'key' => $this->status->value,
+        //     'label' => $this->status->label(),
+        // ];
+    }
 
 }

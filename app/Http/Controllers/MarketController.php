@@ -122,6 +122,7 @@ public function getMarkets(Request $request)
     }
 
     $user = auth()->user();
+    $perPage = $request->query('per_page', 20); 
 
     if ($user->role === 'admin') {
         $branchIds = $user->branches()->pluck('branches.id')->toArray();
@@ -138,10 +139,10 @@ public function getMarkets(Request $request)
             }, function ($query) use ($user) {
                 $query->where('department_id', $user->department_id);
             })
-            ->get();
+            ->paginate($perPage);
 
     } elseif ($user->role === 'user') {
-        $markets = $user->markets()->with(['user:id,name', 'branch:id,name', 'department:id,name'])->get();
+        $markets = $user->markets()->with(['user:id,name', 'branch:id,name', 'department:id,name'])->paginate($perPage);
     } else {
         return response()->json([
             'error' => true,
@@ -151,7 +152,13 @@ public function getMarkets(Request $request)
 
     return response()->json([
         'message' => $markets->isEmpty() ? 'No markets available' : 'Markets retrieved successfully',
-        'markets' => $markets,
+        'markets' => $markets->items(),
+        'meta' => [
+            'current_page' => $markets->currentPage(),
+            'last_page' => $markets->lastPage(),
+            'per_page' => $markets->perPage(),
+            'total' => $markets->total(),
+        ],
     ], 200);
 }
 

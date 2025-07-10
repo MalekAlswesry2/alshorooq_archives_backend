@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('market_id')->constrained()->onDelete('cascade'); // العميل (السوق)
             $table->dateTime('scheduled_at'); // وقت وتاريخ الموعد
             $table->text('description');// وصف الموعد
-            $table->enum('status', ['upcoming', 'completed','not_completed', 'canceled'])->default('upcoming'); // حالة الموعد
+            $table->string('status'); // حالة الموعد
             $table->timestamps();
         });
     }

@@ -1,0 +1,6 @@
+{
+    "appointment.status.upcoming": "مجدول",
+    "appointment.status.completed": "منجز",
+    "appointment.status.not_completed": "غير منجز",
+    "appointment.status.canceled": "ملغي"
+}

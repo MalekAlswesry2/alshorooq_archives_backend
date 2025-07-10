@@ -1,0 +1,6 @@
+{
+    "appointment.status.upcoming": "Upcoming",
+    "appointment.status.completed": "Completed",
+    "appointment.status.not_completed": "Not Completed",
+    "appointment.status.canceled": "Canceled"
+}

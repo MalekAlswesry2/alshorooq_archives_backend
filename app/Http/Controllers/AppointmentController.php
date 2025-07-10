@@ -3,8 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\AppointmentResource;
 use Illuminate\Http\Request;
 use App\Models\Appointment;
+use App\Enums\AppointmentStatus;
+use Illuminate\Validation\Rules\Enum;
+use Illuminate\Support\Carbon;
+use App\Models\User;
+
+
 
 class AppointmentController extends Controller
 {
@@ -12,39 +19,111 @@ class AppointmentController extends Controller
     public function index(Request $request)
 {
     $user = auth()->user();
+    $now = Carbon::now();
 
-    if ($user->role === 'admin' && $request->has('user_id')) {
-        $appointments = Appointment::with(['user:id,name', 'market:id,name'])
-            ->where('user_id', $request->user_id)
-            ->latest()
-            ->get();
+    if ($user->role === 'admin') {
+        // $appointments = Appointment::with(['user:id,name', 'market:id,name'])
+        //     ->where('user_id', $request->user_id)
+        //     ->latest()
+        //     ->get();
+        $futureAppointments = Appointment::with(['market', 'user'])
+            ->where('scheduled_at', '>=', $now)
+            ->orderBy('scheduled_at');
+
+        $pastAppointments = Appointment::with(['market', 'user'])
+            ->where('scheduled_at', '<', $now)
+            ->orderBy('scheduled_at');
+
+        $appointments = $futureAppointments->get()->concat($pastAppointments->get());
     } else {
-        $appointments = $user->appointments()->with('market:id,name')->latest()->get();
+        // $appointments = $user->appointments()->with('market:id,name')->latest()->get();
+        // $appointments = AppointmentResource::collection(
+        //     Appointment::where('user_id', auth()->id())
+        // ->orderBy('scheduled_at')
+        // ->get(),
+        // );
+        $now = Carbon::today(); // or now() if you want time too
+
+    $futureAppointments = Appointment::with('market:id,name')
+        ->where('user_id', $user->id)
+        ->whereDate('scheduled_at', '>=', $now)
+        ->orderBy('scheduled_at', 'asc');
+
+    $pastAppointments = Appointment::with('market:id,name')
+        ->where('user_id', $user->id)
+        ->whereDate('scheduled_at', '<', $now)
+        ->orderBy('scheduled_at', 'asc');
+
+    // Combine both lists
+    $appointments = $futureAppointments->get()->concat($pastAppointments->get());
     }
 
     return response()->json([
-        'appointments' => $appointments,
+        'appointments' => AppointmentResource::collection($appointments),
+    ]);
+}
+
+public function getUserAppointments($user_id)
+{
+    $requestingUser = auth()->user();
+
+    // Optional: prevent normal users from viewing others' data
+    if ($requestingUser->role === 'user' && $requestingUser->id != $user_id) {
+        return response()->json([
+            'error' => true,
+            'message' => 'Unauthorized access to user appointments'
+        ], 403);
+    }
+
+    // Make sure the user exists
+    $user = User::find($user_id);
+    if (!$user) {
+        return response()->json([
+            'error' => true,
+            'message' => 'User not found'
+        ], 404);
+    }
+
+    // Retrieve upcoming first, past later
+    $now = now();
+
+    $futureAppointments = Appointment::with('market')
+        ->where('user_id', $user_id)
+        ->where('scheduled_at', '>=', $now)
+        ->orderBy('scheduled_at', 'asc');
+
+    $pastAppointments = Appointment::with('market')
+        ->where('user_id', $user_id)
+        ->where('scheduled_at', '<', $now)
+        ->orderBy('scheduled_at', 'asc');
+
+    $appointments = $futureAppointments->get()->concat($pastAppointments->get());
+
+    return response()->json([
+        'appointments' => AppointmentResource::collection($appointments),
     ]);
 }
 
     public function store(Request $request)
 {
-    $request->validate([
+    $data = $request->validate([
         'market_id' => 'required|exists:markets,id',
         'scheduled_at' => 'required|date',
         'description' => 'nullable|string',
+        'status' => ['nullable', new Enum(AppointmentStatus::class)],
     ]);
 
     $appointment = Appointment::create([
         'user_id' => auth()->id(),
-        'market_id' => $request->market_id,
-        'scheduled_at' => $request->scheduled_at,
-        'description' => $request->description,
+        'market_id' => $data['market_id'],
+        'scheduled_at' => $data['scheduled_at'],
+        'description' => $data['description'],
+        'status' => $data['status'] ?? AppointmentStatus::Upcoming,
     ]);
 
     return response()->json([
         'message' => 'تم إضافة الموعد بنجاح',
-        'appointment' => $appointment,
+        'appointment' => new AppointmentResource($appointment),
     ]);
 }
 
@@ -53,7 +132,7 @@ public function updateStatus(Request $request, $id)
     $user = auth()->user();
 
     $request->validate([
-        'status' => 'required|in:upcoming,completed,not_completed,canceled',
+        'status' => ['required', new Enum(AppointmentStatus::class)],
     ]);
 
     $appointment = Appointment::find($id);
@@ -66,12 +145,12 @@ public function updateStatus(Request $request, $id)
         return response()->json(['error' => true, 'message' => 'Unauthorized'], 403);
     }
 
-    $appointment->status = $request->status;
+    $appointment->status = AppointmentStatus::from($request->status);
     $appointment->save();
 
     return response()->json([
         'message' => 'تم تحديث حالة الموعد بنجاح',
-        'appointment' => $appointment,
+        'appointment' => new AppointmentResource($appointment),
     ]);
 }
 public function cancelAppointment($id)
@@ -94,12 +173,12 @@ public function cancelAppointment($id)
         ], 403);
     }
 
-    $appointment->status = 'canceled';
+    $appointment->status = AppointmentStatus::Canceled;
     $appointment->save();
 
     return response()->json([
         'message' => 'تم الغاء الموعد بنجاح',
-        'appointment' => $appointment,
+        'appointment' => new AppointmentResource($appointment),
     ]);
 }
 
