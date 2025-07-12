@@ -20,18 +20,19 @@ class User extends Authenticatable implements FilamentUser
      *
      * @var array<int, string>
      */
-    protected $fillable = [
-        'name',
-        'phone',
-        'department_id',
-        'branch_id',
-        'zone_id',
-        'email',
-        'status',
-        'password',
-        'role',
-    ];
+    // protected $fillable = [
+    //     'name',
+    //     'phone',
+    //     'department_id',
+    //     'branch_id',
+    //     'zone_id',
+    //     'email',
+    //     'status',
+    //     'password',
+    //     'role',
+    // ];
 
+    protected $guarded = [];
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -109,7 +110,15 @@ public function appointments()
     return $this->hasMany(Appointment::class);
 }
 
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
 
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'roles', 'role_id');
+    }
 public function canAccessPanel(Panel $panel): bool
 {
     // return str_ends_with($this->email, '@gmail.com') && $this->hasVerifiedEmail();

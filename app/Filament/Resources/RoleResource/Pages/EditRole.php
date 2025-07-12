@@ -1,32 +1,36 @@
 <?php
 
-namespace App\Filament\Resources\UserResource\Pages;
+namespace App\Filament\Resources\RoleResource\Pages;
 
-use App\Filament\Resources\UserResource;
+use App\Filament\Resources\RoleResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Filament\Notifications\Notification;
-
-class EditUser extends EditRecord
+class EditRole extends EditRecord
 {
-    protected static string $resource = UserResource::class;
+    protected static string $resource = RoleResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\ViewAction::make(),
-            // Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),
         ];
     }
-
     protected function afterSave(): void
     {
-        $this->syncUserPermissions($this->record);
+        $roleId = $this->record->id;
+
+        // جلب كل المستخدمين الذين يملكون هذا الدور
+        $users = User::where('role_id', $roleId)->get();
+
+        foreach ($users as $user) {
+            $this->syncUserPermissions($user);
+        }
 
         Notification::make()
-            ->title('✅ تم تحديث صلاحيات المستخدم بنجاح')
+            ->title('✅ تم تحديث صلاحيات جميع المستخدمين المرتبطين بهذا الدور')
             ->success()
             ->send();
     }
