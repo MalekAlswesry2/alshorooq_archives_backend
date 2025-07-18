@@ -21,6 +21,7 @@ class BranchResource extends Resource
 {
     protected static ?string $model = Branch::class;
     protected static ?int $navigationSort = 5;
+    protected static ?string $navigationGroup = "اعدادات النظام";
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
     protected static ?string $label = "فرع";
@@ -40,7 +41,7 @@ class BranchResource extends Resource
                 ->label("العنوان")
                 ->required()
                 ->maxLength(255),
-    
+
             Select::make('status')
                 ->options([
                     'active' => 'Active',

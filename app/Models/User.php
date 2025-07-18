@@ -11,7 +11,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 
 class User extends Authenticatable implements FilamentUser
-// class User extends Authenticatable 
+// class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -52,7 +52,7 @@ class User extends Authenticatable implements FilamentUser
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'balance' => 'double', 
+        'balance' => 'double',
 
     ];
 
@@ -69,7 +69,7 @@ class User extends Authenticatable implements FilamentUser
         {
             return $this->belongsTo(Department::class);
         }
-    
+
         public function branch()
         {
             return $this->belongsTo(Branch::class);
@@ -78,7 +78,7 @@ class User extends Authenticatable implements FilamentUser
         {
             return $this->belongsToMany(Branch::class);
         }
-        
+
         public function departments()
         {
             return $this->belongsToMany(Department::class);
@@ -119,10 +119,16 @@ public function appointments()
     {
         return $this->belongsToMany(Role::class, 'roles', 'role_id');
     }
-public function canAccessPanel(Panel $panel): bool
-{
-    // return str_ends_with($this->email, '@gmail.com') && $this->hasVerifiedEmail();
-    return str_ends_with($this->email, '@gmail.com');
-}
+    public function services()
+    {
+    return $this->belongsToMany(Service::class);
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // return str_ends_with($this->email, '@gmail.com') && $this->hasVerifiedEmail();
+        return str_ends_with($this->email, '@gmail.com');
+    }
+
 
 }

@@ -32,6 +32,8 @@ class ReceiptResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-newspaper';
     protected static ?int $navigationSort = 2;
+        protected static ?string $navigationGroup = "اعدادات النظام";
+
     protected static ?string $label = "ايصال";
     protected static ?string $navigationLabel = "الايصالات";
     protected static ?string $modelLabel = "ايصال";
@@ -75,7 +77,7 @@ class ReceiptResource extends Resource
                 ->schema([
                     ImageEntry::make('image')
                     ->label(""),
-                    
+
                 ])->columns(2)
 
             ]);
@@ -94,10 +96,11 @@ class ReceiptResource extends Resource
                 ->label("الرقم الاشاري"),
                 TextColumn::make('amount')
                 ->formatStateUsing(fn ($state) => number_format($state, 0) . ' د.ل')
-                ->label("القيمة")->summarize(Sum::make()->label('الاجمالي')->formatStateUsing(fn ($state) => number_format($state, 0) . ' د.ل')),
+                ->label("القيمة")->summarize(Sum::make()->label('الاجمالي')
+                ->formatStateUsing(fn ($state) => number_format($state, 0) . ' د.ل')),
                 TextColumn::make('bank.name')
                 ->label("المصرف"),
-                
+
                 TextColumn::make('branch.name')
                 ->label("الفرع"),
                 // TextColumn::make('payment_method')
@@ -116,10 +119,10 @@ class ReceiptResource extends Resource
 
             ])
             ->filters([
-                
+
                 SelectFilter::make('department')->relationship('department', 'name')
                 ->label("القسم"),
-            
+
                 SelectFilter::make('branch')->relationship('branch', 'name')
                 ->label("الفرع"),
 
@@ -163,7 +166,7 @@ class ReceiptResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 // Tables\Actions\EditAction::make(),
-                // Tables\Actions\Action::make('pdf') 
+                // Tables\Actions\Action::make('pdf')
                 //     ->label('PDF')
                 //     ->color('success')
                 //     ->icon('heroicon-o-newspaper')
@@ -173,22 +176,22 @@ class ReceiptResource extends Resource
                 //                 Blade::render('receipt', ['receipt' => $receipt])
                 //             )->stream();
                 //         }, $receipt->custom_id . '.pdf');
-                //     }), 
+                //     }),
 
-                Tables\Actions\Action::make('pdf')
-                ->label('PDF')
-                ->color('success')
-                ->icon('heroicon-o-newspaper')
-                ->action(function (Receipt $receipt) {
-                    return response()->stream(function () use ($receipt) {
-                        echo Pdf::loadHtml(
-                            Blade::render('receipt', ['receipt' => $receipt])
-                        )->stream();
-                    }, 200, [
-                        'Content-Type' => 'application/pdf',
-                        'Content-Disposition' => 'inline; filename="' . $receipt->custom_id . '.pdf"',
-                    ]);
-                }),
+                // Tables\Actions\Action::make('pdf')
+                // ->label('PDF')
+                // ->color('success')
+                // ->icon('heroicon-o-newspaper')
+                // ->action(function (Receipt $receipt) {
+                //     return response()->stream(function () use ($receipt) {
+                //         echo Pdf::loadHtml(
+                //             Blade::render('receipt', ['receipt' => $receipt])
+                //         )->stream();
+                //     }, 200, [
+                //         'Content-Type' => 'application/pdf',
+                //         'Content-Disposition' => 'inline; filename="' . $receipt->custom_id . '.pdf"',
+                //     ]);
+                // }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -222,25 +225,25 @@ class ReceiptResource extends Resource
     {
         $user = auth()->user();
         $query = parent::getEloquentQuery();
-    
+
         // المستخدم العادي يرى فقط إيصالاته
         if ($user->role === 'user') {
             return $query->where('user_id', $user->id);
         }
-    
+
         // المسؤول يرى حسب الفروع والأقسام المربوطة به
         if ($user->role === 'admin') {
             $branchIds = $user->branches()->pluck('branches.id')->toArray();
             $departmentIds = $user->departments()->pluck('departments.id')->toArray();
-    
+
             return $query
                 ->when(!empty($branchIds), fn($q) => $q->whereIn('branch_id', $branchIds))
                 ->when(!empty($departmentIds), fn($q) => $q->whereIn('department_id', $departmentIds));
         }
-    
+
         // أي دور آخر (مثلاً master) يرى كل شيء
         return $query;
     }
-    
+
 
 }

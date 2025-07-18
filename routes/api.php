@@ -12,6 +12,8 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\ServiceController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -58,7 +60,7 @@ Route::prefix('mobile')->group(function () {
         Route::post('/assign-permission/{userId}', [UserController::class, 'assignPermission']);
         Route::post('/remove-permission/{userId}', [UserController::class, 'removePermission']);
         Route::get('/user-permissions/{userId}', [UserController::class, 'checkUserPermissions']);
-    
+
     // add admins
     Route::post('/add-admin', [UserController::class, 'addAdmin']);
 
@@ -109,7 +111,7 @@ Route::prefix('mobile')->group(function () {
         Route::get('/zones/{zoneId}/areas', [AreaController::class, 'index']);
         // إنشاء منطقة جديدة
         Route::post('/areas', [AreaController::class, 'store']);
-    
+
 
         // الاقسام
 
@@ -127,22 +129,25 @@ Route::prefix('mobile')->group(function () {
 
         Route::post('/user/{user}/assign-branches', [UserController::class, 'assignBranches']);
         Route::post('/user/{user}/assign-departments', [UserController::class, 'assignDepartments']);
-        
+
         Route::get('/receipts/{id}/pdfs', [ReceiptController::class, 'printReceiptAsPDF']);
         Route::get('/user/stats', [UserController::class, 'getUserDashboardStats']);
 
 
-        Route::get('/appointments', [AppointmentController::class, 'index']);
+        Route::get('/appointments', action: [AppointmentController::class, 'index']);
         Route::post('/appointments', [AppointmentController::class, 'store']);
         Route::put('/appointments/{id}/update-status', [AppointmentController::class, 'updateStatus']);
         Route::put('/appointments/{id}', [AppointmentController::class, 'cancelAppointment']);
+
+        Route::get('/user/services', [ServiceController::class, 'userServices']);
+
 
     // Route::get('/user/permissions', function () {
     //     return response()->json([
     //         'permissions' => auth()->user()->permissions->pluck('name'),
     //     ]);
     // });
-    
+
 
     // Route::post('/user/{user}/permissions', function (\App\Models\User $user, Request $request) {
     //     $permissions = \App\Models\Permission::whereIn('name', $request->permissions)->pluck('id');

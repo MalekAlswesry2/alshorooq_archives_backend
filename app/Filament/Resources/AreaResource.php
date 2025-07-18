@@ -24,6 +24,7 @@ class AreaResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
     protected static ?string $navigationGroup = "المناطق وخطوط السير";
+        protected static ?int $navigationSort = 10;
     protected static ?string $label = "منطقة";
     protected static ?string $navigationLabel = "مناطق";
     protected static ?string $modelLabel = "منطقة";

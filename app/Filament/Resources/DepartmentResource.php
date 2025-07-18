@@ -24,6 +24,8 @@ class DepartmentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?int $navigationSort = 6;
+        protected static ?string $navigationGroup = "اعدادات النظام";
+
     protected static ?string $label = "قسم";
     protected static ?string $navigationLabel = "الاقسام";
     protected static ?string $modelLabel = "قسم";
@@ -36,7 +38,7 @@ class DepartmentResource extends Resource
                 TextInput::make('name')->label("اسم القسم")
                 ->required()
                 ->maxLength(255),
-    
+
             Select::make('status')->label("الحالة")
                 ->options([
                     'active' => 'Active',
@@ -60,7 +62,7 @@ class DepartmentResource extends Resource
                     'danger' => 'inactive',
                 ]),
 
-                    
+
             ])
             ->filters([
                 SelectFilter::make('status')->label("الحالة")
@@ -97,6 +99,6 @@ class DepartmentResource extends Resource
     public static function canViewAny(): bool
     {
         return auth()->user()->hasPermission('departments_view');
-    }    
+    }
 
 }

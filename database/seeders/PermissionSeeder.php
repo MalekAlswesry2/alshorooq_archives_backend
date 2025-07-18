@@ -12,7 +12,7 @@ class PermissionSeeder extends Seeder
 {
     public function run()
     {
-        // $permissions = 
+        // $permissions =
         //     'إضافة واصل',
         //     // 'تعديل واصل',
         //     // 'حذف واصل',
@@ -48,6 +48,8 @@ class PermissionSeeder extends Seeder
             ['name' => 'عرض المناطق', 'key' => 'areas_view'],
             ['name' => 'عرض سجل الانشطة', 'key' => 'logs_view'],
             ['name' => 'عرض الواصلات', 'key' => 'logs_view'],
+            // ['name' => 'عرض المواعيد', 'key' => 'appointments_view'],
+            // ['name' => 'عرض الأرشيف', 'key' => 'archives_view'],
         ];
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(
@@ -63,16 +65,16 @@ class PermissionSeeder extends Seeder
                     $this->command->warn('لم يتم العثور على مستخدم ماستر');
                     return;
                 }
-        
+
                 // جلب جميع الفروع والأقسام
                 $allBranches = Branch::pluck('id')->toArray();
                 $allDepartments = Department::pluck('id')->toArray();
-        
+
                 // ربطهم بالمستخدم
                 $master->branches()->sync($allBranches);
                 $master->departments()->sync($allDepartments);
-        
+
                 $this->command->info('تم ربط جميع الفروع والأقسام بالماستر بنجاح.');
             }
-    
+
 }

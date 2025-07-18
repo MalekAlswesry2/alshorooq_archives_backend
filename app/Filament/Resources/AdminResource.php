@@ -2,15 +2,18 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\UserResource\Pages;
-use App\Models\Branch;
-use App\Models\Department;
-use App\Models\User;
+use App\Filament\Resources\AdminResource\Pages;
+use App\Filament\Resources\AdminResource\RelationManagers;
+use App\Models\Admin;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+
 use Illuminate\Support\Facades\DB;
 use Filament\Notifications\Notification;
 use Filament\Forms\Components\Select;
@@ -19,22 +22,25 @@ use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\CheckboxList;
 use App\Models\Service;
 use Filament\Infolists\Components\RepeatableEntry;
-class UserResource extends Resource
+class AdminResource extends Resource
 {
-    protected static ?string $model = User::class;
+    protected static ?string $model = \App\Models\User::class;
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?int $navigationSort = 1;
+    protected static ?string $label = "المشرف";
     protected static ?string $navigationGroup = "المستخدمين والصلاحيات ";
+    protected static ?string $navigationLabel = "المشرفين";
+    protected static ?string $modelLabel = "مشرف";
+    protected static ?string $pluralLabel = "المشرفين";
 
-    protected static ?string $label = "المستخدم";
-    protected static ?string $navigationLabel = "المستخدمين";
-    protected static ?string $modelLabel = "مستخدم";
-    protected static ?string $pluralLabel = "المستخدمين";
-
+public static function getEloquentQuery(): Builder
+{
+    return parent::getEloquentQuery()
+        ->where('role', 'admin'); // أو ->where('is_admin', true) حسب نظامك
+}
     public static function form(Form $form): Form
     {
         return $form
@@ -51,7 +57,7 @@ class UserResource extends Resource
 
                 TextInput::make('role')
                     ->maxLength(255)
-                    ->default('user')
+                    ->default('admin')
                     ->readOnly()
                     ->label('النوع'),
 
@@ -63,6 +69,13 @@ class UserResource extends Resource
                     ->label('البريد الالكتروني')
                     ->visible(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord),
 
+                // TextInput::make('password')
+                //     ->password()
+                //     ->required()
+                //     ->maxLength(255)
+                //     ->label('كلمة المرور')
+                //     ->visible(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord),
+
                 Select::make('status')
                     ->options([
                         'active' => 'Active',
@@ -72,39 +85,32 @@ class UserResource extends Resource
                     ->required()
                     ->visible(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\EditRecord),
 
-            Select::make('branch_id')
-                ->label('الفرع')
-                ->options(\App\Models\Branch::pluck('name', 'id'))
-                ->required()
-                ->searchable()
-                ->reactive(), //
-
-            Select::make('department_id')
-                ->label('القسم')
-                ->options(\App\Models\Department::pluck('name', 'id'))
-                ->required()
-                ->searchable(),
-
-            Select::make('zone_id')
-    ->label('خط السير')
-    ->options(function (callable $get) {
-        $branchId = $get('branch_id');
-        return $branchId
-            ? \App\Models\Zone::where('branch_id', $branchId)->pluck('name', 'id')
-            : [];
-    })
-    ->searchable()
-    ->preload()
-    ->reactive() // ضروري
-    ->required()
-    // ->helperText(fn (callable $get) => 'الفرع الحالي: ' . $get('branch_id'))
-
-    // ->disabled(fn (callable $get) => !$get('branch_id' === null))
-        ->hidden(fn (callable $get) => $get('branch_id') === null)
+                Select::make('branches')
+                    ->label('الفروع')
+                    ->multiple()
+                    ->required()
+                    ->preload()
+                    ->reactive()
+                    ->relationship('branches', 'name')
+                    ->afterStateUpdated(function (callable $set) {
+                        $set('zone_id', null);
+                    }),
 
 
-    ->hint('اختر الفرع أولاً لعرض خطوط السير'),
+                Select::make('departments')
+                    ->multiple()
+                    ->preload()
+                    ->required()
+                    ->relationship('departments', 'name')
+                    ->searchable()
+                    ->label('الأقسام'),
 
+                Select::make('role_id')
+                    ->label('الدور')
+                    ->relationship('role', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
 
                 CheckboxList::make('services')
                 ->relationship('services', 'name')
@@ -113,7 +119,6 @@ class UserResource extends Resource
                 ->helperText('حدد الخدمات التي يستطيع هذا المستخدم الوصول إليها'),
                 ]);
     }
-
     public static function table(Table $table): Table
     {
         return $table
@@ -121,8 +126,6 @@ class UserResource extends Resource
                 TextColumn::make('name')->label("الاسم")->searchable()->alignCenter(),
                 TextColumn::make('email')->label("البريد الالكتروني")->searchable(),
                 TextColumn::make('phone')->label("رقم الهاتف")->searchable(),
-                TextColumn::make('branch.name')->label("الفرع")->searchable(),
-                TextColumn::make('department.name')->label("القسم")->searchable(),
                 TextColumn::make('status')->label("الحالة"),
                 TextColumn ::make('services.name')
                 ->label('الخدمات')
@@ -133,14 +136,14 @@ class UserResource extends Resource
                 SelectFilter::make('department')->relationship('department', 'name')->label("القسم"),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([]),
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
             ]);
     }
-
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -150,7 +153,7 @@ class UserResource extends Resource
                     TextEntry::make('phone')->label("رقم الهاتف"),
                     TextEntry::make('branch.name')->label("الفرع"),
                     TextEntry::make('department.name')->label("القسم"),
-                    // TextEntry::make('address')->label("العنوان"),
+                    TextEntry::make('address')->label("العنوان"),
                 ])->columns(3),
                 Section::make('حالة المستخدم')->schema([
                     TextEntry::make('role')->label("نوع المستخدم"),
@@ -168,56 +171,24 @@ class UserResource extends Resource
     ])
             ]);
     }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'view' => Pages\ViewUser::route('/{record}'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
-        ];
-    }
-
-    public static function canViewAny(): bool
+        public static function canViewAny(): bool
     {
         return auth()->user()->hasPermission('users_view');
     }
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getRelations(): array
     {
-        $user = auth()->user();
+        return [
+            //
+        ];
+    }
 
-        if ($user->role === 'master') {
-            return parent::getEloquentQuery()->where('role', '!=', 'master')
-                ->where('role', '!=', 'admin'); // 👈 هذا السطر الجديد
-
-        }
-
-        $query = parent::getEloquentQuery()->where('role', '!=', 'master')    ->where('role', '!=', 'admin'); // 👈 هذا السطر الجديد
-
-
-        $branchIds = $user->branches()->pluck('branches.id')->toArray();
-        $departmentIds = $user->departments()->pluck('departments.id')->toArray();
-
-        if (empty($branchIds)) {
-            $branchIds[] = $user->branch_id;
-        }
-        if (empty($departmentIds)) {
-            $departmentIds[] = $user->department_id;
-        }
-
-        return $query->where(function ($q) use ($branchIds, $departmentIds) {
-            $q->whereHas('branches', function ($q2) use ($branchIds) {
-                $q2->whereIn('branches.id', $branchIds);
-            })
-            ->orWhereHas('departments', function ($q3) use ($departmentIds) {
-                $q3->whereIn('departments.id', $departmentIds);
-            })
-            ->orWhere(function ($q4) use ($branchIds, $departmentIds) {
-                $q4->whereIn('branch_id', $branchIds)
-                   ->whereIn('department_id', $departmentIds);
-            });
-        });
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListAdmins::route('/'),
+            'create' => Pages\CreateAdmin::route('/create'),
+            'edit' => Pages\EditAdmin::route('/{record}/edit'),
+        ];
     }
 }

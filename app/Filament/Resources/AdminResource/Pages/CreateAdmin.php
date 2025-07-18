@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\UserResource\Pages;
+namespace App\Filament\Resources\AdminResource\Pages;
 
-use App\Filament\Resources\UserResource;
+use App\Filament\Resources\AdminResource;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -11,12 +11,10 @@ use App\Models\User;
 use App\Notifications\SendPasswordToUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-class CreateUser extends CreateRecord
+class CreateAdmin extends CreateRecord
 {
-    protected static string $resource = UserResource::class;
-
-
-    protected function getCreatedNotification(): ?Notification
+    protected static string $resource = AdminResource::class;
+protected function getCreatedNotification(): ?Notification
     {
         return Notification::make()
                 ->success()

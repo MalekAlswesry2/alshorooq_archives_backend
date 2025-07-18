@@ -25,6 +25,7 @@ class BankResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-building-library';
     protected static ?int $navigationSort = 4;
     protected static ?string $label = "مصرف";
+    protected static ?string $navigationGroup = "اعدادات النظام";
     protected static ?string $navigationLabel = "المصارف";
     protected static ?string $modelLabel = "مصرف";
     protected static ?string $pluralLabel = "المصارف";
@@ -93,15 +94,15 @@ class BankResource extends Resource
     {
         $user = auth()->user();
         $query = parent::getEloquentQuery();
-    
+
         if ($user->role === 'admin') {
             $branchIds = $user->branches()->pluck('branches.id')->toArray();
-    
+
             return $query->when(!empty($branchIds), fn($q) => $q->whereIn('branch_id', $branchIds));
         }
-    
+
         // في حالة المستخدم العادي (user) نظهر له كل شيء أو حسب ما تحدده أنت
         return $query;
     }
-    
+
 }

@@ -18,6 +18,12 @@ use Filament\Forms\Components\CheckboxList;
 class RoleResource extends Resource
 {
     protected static ?string $model = Role::class;
+    protected static ?int $navigationSort = 7;
+    protected static ?string $label = "الدور";
+    protected static ?string $navigationLabel = "الأدوار والصلاحيات";
+    protected static ?string $modelLabel = "دور";
+    protected static ?string $pluralLabel = "ادوار";
+    protected static ?string $navigationGroup = "المستخدمين والصلاحيات ";
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -32,7 +38,7 @@ class RoleResource extends Resource
             CheckboxList::make('permissions')
                 ->label('الصلاحيات')
                 ->relationship('permissions', 'name')
-                
+
                 ->columns(2)
                 ->searchable(),
         ]);

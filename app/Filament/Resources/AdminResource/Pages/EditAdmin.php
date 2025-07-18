@@ -1,26 +1,25 @@
 <?php
 
-namespace App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource;
+namespace App\Filament\Resources\AdminResource\Pages;
+
+use App\Filament\Resources\AdminResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Filament\Notifications\Notification;
+use App\Models\User;
 
-class EditUser extends EditRecord
+class EditAdmin extends EditRecord
 {
-    protected static string $resource = UserResource::class;
+    protected static string $resource = AdminResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\ViewAction::make(),
-            // Actions\DeleteAction::make(),
+            Actions\DeleteAction::make(),
         ];
     }
-
-    protected function afterSave(): void
+        protected function afterSave(): void
     {
         $this->syncUserPermissions($this->record);
 
@@ -29,8 +28,7 @@ class EditUser extends EditRecord
             ->success()
             ->send();
     }
-
-    protected function syncUserPermissions(User $user): void
+        protected function syncUserPermissions(User $user): void
     {
         DB::table('user_permissions')->where('user_id', $user->id)->delete();
 
@@ -45,4 +43,5 @@ class EditUser extends EditRecord
             ]);
         }
     }
+
 }

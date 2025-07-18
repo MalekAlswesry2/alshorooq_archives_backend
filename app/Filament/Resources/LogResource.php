@@ -19,6 +19,8 @@ class LogResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-queue-list';
     protected static ?string $label = "سجل الأنشطة";
+        protected static ?string $navigationGroup = "المتابعة";
+
     protected static ?string $navigationLabel = "سجل الأنشطة";
     protected static ?string $modelLabel = "سجل الأنشطة";
     protected static ?string $pluralLabel = "سجل الأنشطة";

@@ -29,6 +29,9 @@ class MarketResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
     protected static ?int $navigationSort = 3;
+    
+    protected static ?string $navigationGroup = "اعدادات النظام";
+
     protected static ?string $label = "عميل";
     protected static ?string $navigationLabel = "العملاء";
     protected static ?string $modelLabel = "عميل";
@@ -62,7 +65,7 @@ class MarketResource extends Resource
                     ->required()
                     ->maxLength(255),
 
-                    
+
                     Select::make('department_id')
                     ->label('القسم')
                     ->required()
@@ -110,7 +113,7 @@ class MarketResource extends Resource
                     ->label("رقم الهاتف"),
                     TextEntry::make('system_market_number')
                     ->label("رقم المنظومة"),
- 
+
                     TextEntry::make('address')
                     ->label("العنوان"),
 
@@ -126,7 +129,7 @@ class MarketResource extends Resource
                     TextEntry::make('area.name')
                     ->label("خط السير"),
 
-                    
+
                     TextEntry::make('status')
                     ->label("الحالة"),
                 ])->columns(2)
@@ -219,19 +222,19 @@ class MarketResource extends Resource
     {
         $user = auth()->user();
         $query = parent::getEloquentQuery();
-    
+
         if ($user->role === 'admin') {
             $branchIds = $user->branches()->pluck('branches.id')->toArray();
             $departmentIds = $user->departments()->pluck('departments.id')->toArray();
-    
+
             return $query
                 ->when(!empty($branchIds), fn($q) => $q->whereIn('branch_id', $branchIds))
                 ->when(!empty($departmentIds), fn($q) => $q->whereIn('department_id', $departmentIds));
         }
-    
+
         // للمندوب نعرض الأسواق الخاصة به فقط
         return $query->where('user_id', $user->id);
     }
-    
-    
+
+
 }

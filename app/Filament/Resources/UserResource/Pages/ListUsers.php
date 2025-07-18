@@ -20,26 +20,26 @@ class ListUsers extends ListRecords
         ];
     }
 
-    
-    public function getTabs(): array
-    {
-        return [
-            // 'all' => Tab::make()
-            // ->modifyQueryUsing(fn (Builder $query) => $query->where()),
-            'المشرفين' => Tab::make()
-            
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('role', 'admin'))
-                // ->badge(fn () => Receipt::where('status', 'received')->count())
-                
-                ,
-                
-            'المستخدمين' => Tab::make()
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('role', 'user'))
-                // ->badge(fn () => Receipt::where('status', 'not_received')->count())
-                ,
 
-        ];
-    }
+    // public function getTabs(): array
+    // {
+    //     return [
+    //         // 'all' => Tab::make()
+    //         // ->modifyQueryUsing(fn (Builder $query) => $query->where()),
+    //         'المشرفين' => Tab::make()
+
+    //             ->modifyQueryUsing(fn (Builder $query) => $query->where('role', 'admin'))
+    //             // ->badge(fn () => Receipt::where('status', 'received')->count())
+
+    //             ,
+
+    //         'المستخدمين' => Tab::make()
+    //             ->modifyQueryUsing(fn (Builder $query) => $query->where('role', 'user'))
+    //             // ->badge(fn () => Receipt::where('status', 'not_received')->count())
+    //             ,
+
+    //     ];
+    // }
 
     // protected function getStats(): array
     // {
@@ -49,5 +49,5 @@ class ListUsers extends ListRecords
     //         Stat::make('Average time on page', '3:12'),
     //     ];
     // }
-    
+
 }

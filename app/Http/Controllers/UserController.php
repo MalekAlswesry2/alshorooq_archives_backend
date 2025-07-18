@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AppointmentStatus;
+use App\Models\Appointment;
 use App\Models\Permission;
 use App\Models\Receipt;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Artisan;
@@ -12,50 +15,7 @@ use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    /**
-     * عرض جميع المستخدمين الذين لديهم دور user.
-     */
 
-//      public function getUsersWithUserRole()
-// {
-//     if (!auth()->check()) {
-//         return response()->json([
-//             'error' => true,
-//             'message' => 'You Are Not Authenticated',
-//         ], 401);
-//     }
-
-//     $admin = auth()->user();
-
-//     if ($admin->role !== 'admin') {
-//         return response()->json([
-//             'error' => true,
-//             'message' => 'Unauthorized. Only admin can access this.',
-//         ], 403);
-//     }
-
-//     $users = User::where('role', '!=', 'master')
-//         ->where('department_id', $admin->department_id)
-//         ->where('branch_id', $admin->branch_id)
-//         ->with('permissions:id,name,key')
-//         ->get(['id', 'name', 'email', 'phone', 'zone_id', 'department_id', 'branch_id', 'role']);
-
-//     $users->each(function ($user) {
-//         $user->permissions->makeHidden('pivot');
-//     });
-
-//     if ($users->isEmpty()) {
-//         return response()->json([
-//             'message' => 'No users found in your department and branch',
-//             'users' => $users,
-//         ], 200);
-//     }
-
-//     return response()->json([
-//         'message' => 'Users retrieved successfully',
-//         'users' => $users,
-//     ], 200);
-// }
 public function getUsersWithUserRole()
 {
     if (!auth()->check()) {
@@ -369,6 +329,62 @@ public function getTheToken($userId){
 
     return  $user->tokens;
 }
+
+// // {
+// //     if (!auth()->check()) {
+// //         return response()->json([
+// //             'error' => true,
+// //             'message' => 'You Are Not Authenticated',
+// //         ], 401);
+// //     }
+
+// //     $user = auth()->user();
+
+// //     $receiptsCount = Receipt::where('user_id', $user->id)
+// //         ->where('status', 'not_received')
+// //         ->count();
+
+// //     $appointmentsCount = 5;
+
+// //     return response()->json([
+// //         'message' => 'User dashboard stats retrieved successfully',
+// //         'data' => [
+// //             'receipts_not_received_count' => $receiptsCount,
+// //             'appointments_count' => $appointmentsCount,
+// //         ],
+// //     ], 200);
+// // }
+
+//     public function getUserDashboardStats()
+//     {
+//         if (!auth()->check()) {
+//             return response()->json([
+//                 'error' => true,
+//                 'message' => 'You Are Not Authenticated',
+//             ], 401);
+//         }
+
+//         $user = auth()->user();
+
+//         $receiptsCount = Receipt::where('user_id', $user->id)
+//             ->where('status', 'not_received')
+//             ->count();
+
+//         $appointmentsCount = Appointment::where('user_id', $user->id)
+//             ->whereDate('scheduled_at', Carbon::today())
+//             ->where('status', AppointmentStatus::Upcoming)
+//             ->count();
+
+//         return response()->json([
+//             'message' => 'User dashboard stats retrieved successfully',
+//             'data' => [
+//                 'receipts_not_received_count' => $receiptsCount,
+//                 'appointments_count' => $appointmentsCount,
+//             ],
+//         ], 200);
+//     }
+
+
 public function getUserDashboardStats()
 {
     if (!auth()->check()) {
@@ -378,21 +394,68 @@ public function getUserDashboardStats()
         ], 401);
     }
 
-    $user = auth()->user();
+    // جلب المستخدم مع الخدمات المرتبطة
+    $user = \App\Models\User::with('services')->find(auth()->id());
+    $ownedServiceKeys = $user->services->pluck('key')->toArray();
 
-    $receiptsCount = Receipt::where('user_id', $user->id)
-        ->where('status', 'not_received')
-        ->count();
+    $data = [];
 
-    $appointmentsCount = 5;
+    // خدمة الأرشفة = عدد الإيصالات غير المستلمة
+    if (in_array('archives', $ownedServiceKeys)) {
+        $data['receipts_not_received_count'] = Receipt::where('user_id', $user->id)
+            ->where('status', 'not_received')
+            ->count();
+    }
+
+    // خدمة المواعيد = عدد المواعيد اليوم القادمة
+    if (in_array('appointments', $ownedServiceKeys)) {
+        $data['appointments_count'] = Appointment::where('user_id', $user->id)
+            ->whereDate('scheduled_at', Carbon::today())
+            ->where('status', AppointmentStatus::Upcoming->value)
+            ->count();
+    }
 
     return response()->json([
         'message' => 'User dashboard stats retrieved successfully',
-        'data' => [
-            'receipts_not_received_count' => $receiptsCount,
-            'appointments_count' => $appointmentsCount,
+        'data' => $data,
+    ]);
+}
+public function getAvailableServices(Request $request)
+{
+    $user = User::with('permissions')->findOrFail($request->user()->id);
+
+    $userPermissionKeys = $user->permissions->pluck('key')->toArray();
+
+    $services = [
+        [
+            'key' => 'appointments',
+            'name' => 'المواعيد',
+            'icon' => 'calendar',
+            'permission' => 'appointments_view',
         ],
-    ], 200);
+        [
+            'key' => 'archives',
+            'name' => 'الأرشيف',
+            'icon' => 'folder',
+            'permission' => 'archives_view',
+        ],
+        [
+            'key' => 'products',
+            'name' => 'المنتجات',
+            'icon' => 'box',
+            'permission' => 'products_view',
+        ],
+    ];
+
+    $available = collect($services)->filter(function ($service) use ($userPermissionKeys) {
+        return in_array($service['permission'], $userPermissionKeys);
+    })->values();
+
+    return response()->json([
+        'services' => $available
+    ]);
 }
 
+
 }
+

@@ -22,6 +22,7 @@ class ZoneResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-map';
     protected static ?string $navigationGroup = "المناطق وخطوط السير";
     protected static ?string $label = "خط السير";
+        protected static ?int $navigationSort = 9;
     protected static ?string $navigationLabel = "خطوط السير";
     protected static ?string $modelLabel = "خط السير";
         protected static ?string $pluralLabel = "خطوط السير";
@@ -61,7 +62,7 @@ class ZoneResource extends Resource
                     Tables\Columns\TextColumn::make('branch.name')
                     ->label("الفرع")
                         ->searchable(),
-    
+
             ])
             ->filters([
                 //
